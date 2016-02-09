@@ -2,13 +2,12 @@ import path from 'path';
 import Metalsmith from 'metalsmith';
 import markdown from 'metalsmith-markdown';
 import template from 'metalsmith-react-tpl';
-import prismic from '../_plugins/lib/prismic';
+import prismic from './prismic';
 import assets from 'metalsmith-assets';
-import getPrismicContent from '../_plugins/lib/getPrismicContent';
-import webpackPages from '../_plugins/lib/webpackPages';
+import getPrismicContent from './getPrismicContent';
+import webpackPages from './webpackPages';
 
 const MetalSmithLoader = ( opts ) => {
-
   if ( !opts.src ) throw 'No src param provided for the .md file directory';
   if ( !opts.prismic ) throw 'No prismic param provided for the prismic endpoint';
   if ( !opts.templateDir ) throw 'No templateDir param provided for the template directory';
@@ -46,8 +45,8 @@ const MetalSmithLoader = ( opts ) => {
     .use( webpackPages({
       directory: opts.templateDir,
       noConflict: false,
-      dest: path.join( opts.destination, 'js' ),
-      webpack: require( opts.webpack )
+      dest: opts.destination + '/js',
+      webpack: require( path.join( opts.src, opts.webpack ))
     } ))
     .build( function( err ) {
       if ( err ) throw err;

@@ -12,7 +12,7 @@
   "scripts": {
     "build": "npm run trans",
     "postinstall": "npm run build",
-    "trans": "babel src/*.js -d lib/",
+    "trans": "babel src/ -d lib/",
     "lint": "cp src/eslintrc .eslintrc && node_modules/.bin/make-up src/",
     "ci": "npm run lint"
   },
@@ -35,21 +35,17 @@
     "path": "^0.12.7",
     "prismic.io": "^1.4.1",
     "react": "^0.14.3",
-    "react-cookie": "^0.4.3",
     "react-dom": "^0.14.3",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "babel-plugin-transform-react-jsx": "^6.4.0",
     "babel-preset-es2015": "^6.3.13",
-    "babel-preset-react": "^6.3.13",
     "grunt": "^0.4.5",
     "grunt-contrib-uglify": "^0.11.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-shell": "^1.1.2",
     "make-up": "^7.1.0",
     "rimraf": "^2.2.8",
-    "serve": "^1.4.0",
     "webpack-dev-server": "^1.14.1"
   }
 }
