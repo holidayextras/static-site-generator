@@ -7,3 +7,9 @@ dependencies:
 test:
   override:
     - npm run ci
+deployment:
+  production:
+    branch: master
+    commands:
+    - echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
+    - sh ./scripts/publish.sh    
