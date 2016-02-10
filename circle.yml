@@ -12,4 +12,4 @@ deployment:
     branch: circle
     commands:
     - echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
-    - sh ./scripts/build.sh    
+    - sh ./scripts/publish.sh    
