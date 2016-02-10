@@ -12,7 +12,7 @@
   "scripts": {
     "build": "npm run trans",
     "postinstall": "npm run build",
-    "trans": "babel src/ -d lib/",
+    "trans": "./node_modules/babel/bin/babel.js src/ -d lib/",
     "lint": "cp src/eslintrc .eslintrc && node_modules/.bin/make-up src/",
     "ci": "npm run lint"
   },
