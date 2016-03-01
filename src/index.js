@@ -2,7 +2,7 @@ import path from 'path';
 import Metalsmith from 'metalsmith';
 import markdown from 'metalsmith-markdown';
 import template from 'metalsmith-react-tpl';
-import prismic from './prismic';
+import prismic from 'metalsmith-prismic';
 import assets from 'metalsmith-assets';
 import getPrismicContent from './getPrismicContent';
 import webpackPages from './webpackPages';
