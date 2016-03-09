@@ -10,7 +10,8 @@ const webpackPages = ( globalOptions ) => {
   const generateOutput = ( template, props, options ) => {
     let output = "var React = require( 'react' );";
     output += "var ReactDOM = require( 'react-dom' );";
-    output += "var Element = require( '" + template + "' ).default;";
+    output += "var Element = require( '" + template + "' );";
+    output += "if ( typeof Element.default === 'function' ) Element = Element.default;";
     output += 'var props = ' + JSON.stringify( props ) + ';';
     output += "var renderedElement = ReactDOM.render( <Element {...props} />, document.getElementById( 'content' ));";
 
