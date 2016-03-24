@@ -2,32 +2,31 @@ import path from 'path';
 import Metalsmith from 'metalsmith';
 import markdown from 'metalsmith-markdown';
 import template from 'metalsmith-react-tpl';
-import prismic from 'metalsmith-prismic';
+import getDataSource from './getDataSource';
 import assets from 'metalsmith-assets';
 import getPrismicContent from './getPrismicContent';
 import webpackPages from './webpackPages';
 
 const MetalSmithLoader = ( opts ) => {
   if ( !opts.src ) throw 'No src param provided for the .md file directory';
-  if ( !opts.prismic ) throw 'No prismic param provided for the prismic endpoint';
+  if ( !opts.dataSource ) throw 'No dataSource param provided for the content endpoint';
   if ( !opts.templateDir ) throw 'No templateDir param provided for the template directory';
   if ( !opts.layoutDir ) throw 'No layoutDir param provided for the layouts directory';
   if ( !opts.destination ) throw 'No destination param provided for the output directory';
   if ( !opts.assets ) throw 'No assets param provided for the assets directory';
 
-  if ( !opts.config ) opts.config = { };
+  const dataSource = getDataSource( opts );
 
-  new Metalsmith( opts.src )
+  const metalSmith = new Metalsmith( opts.src )
     .clean( opts.clean )
-    .metadata( opts.config )
-    .use( prismic({
-      'url': opts.prismic,
-      'linkResolver': function( ctx, doc ) {
-        if ( doc.isBroken ) return '';
-        return '/' + doc.uid;
-      }
-    } ))
-    .use( getPrismicContent( ))
+    .metadata( opts.config || { } )
+    .use( dataSource );
+
+  if ( opts.dataSource && opts.dataSource.type === 'prismic' ) {
+    metalSmith.use( getPrismicContent( ));
+  }
+
+  metalSmith
     .use( markdown( ))
     .use( template({
       babel: true,
@@ -47,10 +46,11 @@ const MetalSmithLoader = ( opts ) => {
       noConflict: false,
       dest: opts.destination + '/js',
       webpack: require( path.join( opts.src, opts.webpack ))
-    } ))
-    .build( function( err ) {
-      if ( err ) throw err;
-    } );
+    } ));
+
+  metalSmith.build( function( err ) {
+    if ( err ) throw err;
+  } );
 };
 
 export default MetalSmithLoader;
