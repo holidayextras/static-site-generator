@@ -3,6 +3,7 @@ import webpack from 'webpack';
 import fs from 'fs';
 import _ from 'underscore';
 import rm from 'rimraf';
+import mkdirp from 'mkdirp';
 
 let outputFiles = { };
 
@@ -17,9 +18,15 @@ const webpackPages = ( globalOptions ) => {
 
     const destFilename = options.destFilename;
     const filename = path.join( options.tempDir, destFilename );
-    if ( !fs.existsSync( path.dirname( filename ) )) fs.mkdirSync( path.dirname( filename ));
+
     outputFiles[ destFilename.replace( '.js', '' ) ] = filename;
-    fs.writeFile( filename, output );
+
+    mkdirp( path.dirname( filename ), err => {
+      if ( err ) return console.log( err );
+      fs.writeFile( filename, output, ( error ) => {
+        if ( error ) return console.log( error );
+      });
+    });
   };
 
   /* Return to metalsmith */
