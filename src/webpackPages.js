@@ -4,11 +4,12 @@ import fs from 'fs';
 import _ from 'underscore';
 import rm from 'rimraf';
 import mkdirp from 'mkdirp';
+import { forEachOf } from 'async';
 
 let outputFiles = { };
 
 const webpackPages = ( globalOptions ) => {
-  const generateOutput = ( template, props, options ) => {
+  const generateOutput = ( template, props, options, next ) => {
     let output = "var React = require( 'react' );";
     output += "var ReactDOM = require( 'react-dom' );";
     output += "var Element = require( '" + template + "' );";
@@ -22,9 +23,9 @@ const webpackPages = ( globalOptions ) => {
     outputFiles[ destFilename.replace( '.js', '' ) ] = filename;
 
     mkdirp( path.dirname( filename ), err => {
-      if ( err ) return console.log( err );
+      if ( err ) return next( err );
       fs.writeFile( filename, output, ( error ) => {
-        if ( error ) return console.log( error );
+        next( error || 'done' );
       });
     });
   };
@@ -32,10 +33,9 @@ const webpackPages = ( globalOptions ) => {
   /* Return to metalsmith */
   return ( files, metalsmith, done ) => {
     if ( !( globalOptions.webpack && globalOptions.dest && globalOptions.directory )) return done();
-    globalOptions.tempDir = path.join( metalsmith._directory, '_tempOutput' );
-    globalOptions.dest = path.join( metalsmith._directory, globalOptions.dest );
-    Object.keys( files ).forEach( file => {
-      const props = _.extend( { }, files[ file ], metalsmith._metadata );
+
+    const iterator = ( prop, file, next ) => {
+      const props = _.extend( { }, prop, metalsmith._metadata );
       props.tpl = ( globalOptions.noConflict ) ? 'rtemplate' : 'template';
       if ( !props[ props.tpl ] ) return;
       delete props.contents;
@@ -43,15 +43,22 @@ const webpackPages = ( globalOptions ) => {
       delete props.mode;
       const template = path.join( metalsmith._directory, globalOptions.directory, props[ props.tpl ] );
       globalOptions.destFilename = file.replace( path.extname( file ), '' ) + '.js';
-      generateOutput( template, props, globalOptions );
-    });
+      generateOutput( template, props, globalOptions, next );
+    };
 
-    globalOptions.webpack.entry = outputFiles;
-    webpack( globalOptions.webpack, err => {
-      if ( err ) throw err;
-      rm( path.join( metalsmith._directory, '_tempOutput' ), ( ) => { } );
-    } );
-    return done( );
+    const finishEach = ( error ) => {
+      if ( error !== 'done' ) return done( error );
+      globalOptions.webpack.entry = outputFiles;
+      console.log( outputFiles );
+      webpack( globalOptions.webpack, err => {
+        rm( path.join( metalsmith._directory, '_tempOutput' ), ( ) => { } );
+        done( err );
+      } );
+    };
+
+    globalOptions.tempDir = path.join( metalsmith._directory, '_tempOutput' );
+    globalOptions.dest = path.join( metalsmith._directory, globalOptions.dest );
+    forEachOf( files, iterator, finishEach );
   };
 };
 
