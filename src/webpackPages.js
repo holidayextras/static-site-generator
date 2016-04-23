@@ -49,7 +49,6 @@ const webpackPages = ( globalOptions ) => {
     const finishEach = ( error ) => {
       if ( error !== 'done' ) return done( error );
       globalOptions.webpack.entry = outputFiles;
-      console.log( outputFiles );
       webpack( globalOptions.webpack, err => {
         rm( path.join( metalsmith._directory, '_tempOutput' ), ( ) => { } );
         done( err );
