@@ -1,6 +1,6 @@
 {
   "name": "@holidayextras/static-site-generator",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",
@@ -33,6 +33,7 @@
     "metalsmith-markdown": "^0.2.1",
     "metalsmith-prismic": "^0.10.0",
     "metalsmith-react-tpl": "^0.2.3",
+    "mkdirp": "^0.5.1",
     "moment": "^2.11.1",
     "path": "^0.12.7",
     "publish": "^0.5.0",
