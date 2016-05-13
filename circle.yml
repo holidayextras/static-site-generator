@@ -1,6 +1,6 @@
 machine:
   node:
-    version: 0.12.7
+    version: 4.4.4
 dependencies:
   cache_directories:
     - node_modules
@@ -12,4 +12,4 @@ deployment:
     branch: master
     commands:
     - echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
-    - sh ./scripts/publish.sh    
+    - sh ./scripts/publish.sh
