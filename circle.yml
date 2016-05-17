@@ -9,7 +9,7 @@ test:
     - npm run ci
 deployment:
   production:
-    branch: master
+    branch: 2.0.4
     commands:
     - echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
     - sh ./scripts/publish.sh
