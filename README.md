@@ -24,5 +24,5 @@ You can pass in a `config` param too setup an object used in pages (domain, defa
 `webpack` is optional if you want to create a common js for the site and page specific js files for isomorphic pages. (This will be a link to the webpack.config.js file)
 
 ## Publishing
-This repoistory is available on npm (here)[https://www.npmjs.com/package/@holidayextras/static-site-generator], if you wish to release a new version simply bump the package.json version number and the build process will take care of the rest.
+This repoistory is available on npm [here](https://www.npmjs.com/package/@holidayextras/static-site-generator), if you wish to release a new version simply bump the package.json version number and the build process will take care of the rest.
 
