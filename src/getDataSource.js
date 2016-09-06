@@ -14,7 +14,7 @@ const getDataSource = ( opts ) => {
         if ( doc.isBroken ) return '';
         return '/' + doc.uid;
       }
-    }, opts.dataSource.token );
+    }, opts.dataSource.accessToken );
   }
   if ( opts.dataSource.type === 'hxseo' ) {
     return hxseo({
