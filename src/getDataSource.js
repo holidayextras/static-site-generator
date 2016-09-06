@@ -10,11 +10,12 @@ const getDataSource = ( opts ) => {
   if ( opts.dataSource.type === 'prismic' ) {
     return prismic({
       'url': opts.dataSource.url,
+      'accessToken': opts.dataSource.accessToken,
       'linkResolver': function( ctx, doc ) {
         if ( doc.isBroken ) return '';
         return '/' + doc.uid;
       }
-    }, opts.dataSource.token );
+    });
   }
   if ( opts.dataSource.type === 'hxseo' ) {
     return hxseo({
