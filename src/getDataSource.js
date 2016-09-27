@@ -1,4 +1,4 @@
-import prismic from 'metalsmith-prismic';
+import prismic from './metalsmith-prismic';
 import hxseo from './getHXSEOContent';
 
 const getDataSource = ( opts ) => {
