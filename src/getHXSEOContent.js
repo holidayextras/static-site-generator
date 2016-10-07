@@ -41,7 +41,7 @@ const getHXSEOContent = ( opts ) => {
     };
 
     const asyncGetQuery = ( request, option, currentFile, opt, extraCallBack ) => {
-      if ( ! currentFile.data.pageData[option[1]] ) return extraCallBack( );
+      if ( !currentFile.data.pageData[option[1]] ) return extraCallBack( );
       const value = currentFile.data.pageData[option[1]].split( ',' )[0];
       request.path = request.path.replace( option[0], value );
       http.get( request, ( resExtra ) => {
@@ -55,9 +55,9 @@ const getHXSEOContent = ( opts ) => {
           getDataForPage( res, fileName, resolve );
         });
       }).then( data => {
-        if ( ! fileParams.hxseo.extras ) return callBack( );
+        if ( !fileParams.hxseo.extras ) return callBack( );
         async.each( Object.keys( fileParams.hxseo.extras ), ( opt, extraCallBack ) => {
-          if ( ! fileParams.hxseo.extras[ opt ].path ) return extraCallBack( );
+          if ( !fileParams.hxseo.extras[ opt ].path ) return extraCallBack( );
           const option = fileParams.hxseo.extras[ opt ].path.match( /<%([^%].*)%>/ );
           async.each( data, ( currentFile, cb ) => {
             asyncGetQuery( fileParams.hxseo.extras[ opt ], option, currentFile, opt, cb );
