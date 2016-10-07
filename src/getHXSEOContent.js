@@ -43,8 +43,11 @@ const getHXSEOContent = ( opts ) => {
     const asyncGetQuery = ( request, option, currentFile, opt, extraCallBack ) => {
       if ( !currentFile.data.pageData[option[1]] ) return extraCallBack( );
       const value = currentFile.data.pageData[option[1]].split( ',' )[0];
-      request.path = request.path.replace( option[0], value );
-      http.get( request, ( resExtra ) => {
+      const requestOptions = {
+        hostname: request.hostname,
+        path: request.path.replace( option[0], value )
+      };
+      http.get( requestOptions, ( resExtra ) => {
         getExtraDataForPage( resExtra, currentFile.key, opt, extraCallBack );
       });
     };
