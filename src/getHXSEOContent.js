@@ -35,14 +35,16 @@ const getHXSEOContent = ( opts ) => {
       });
       res.on( 'end', ( ) => {
         data = JSON.parse( data );
-        files[ fileName ][ key ] = data.product;
+        if ( Object.keys( data ).length === 1 ) data = data[Object.keys( data )[0]];
+        files[ fileName ][ key ] = data;
         cb( );
       });
     };
 
     const asyncGetQuery = ( request, option, currentFile, opt, extraCallBack ) => {
       if ( !currentFile.data.pageData[option[1]] ) return extraCallBack( );
-      const value = currentFile.data.pageData[option[1]].split( ',' )[0];
+      let value = currentFile.data.pageData[option[1]];
+      if ( value.indexOf( ',' )) value = value.replace( / /g, '' ); // Dont want spaces in array
       const requestOptions = {
         hostname: request.hostname,
         path: request.path.replace( option[0], value )
