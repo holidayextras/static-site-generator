@@ -34,10 +34,14 @@ const getHXSEOContent = ( opts ) => {
         data += d;
       });
       res.on( 'end', ( ) => {
-        data = JSON.parse( data );
-        if ( Object.keys( data ).length === 1 ) data = data[Object.keys( data )[0]];
-        files[ fileName ][ key ] = data;
-        cb( );
+        try {
+          data = JSON.parse( data );
+          if ( Object.keys( data ).length === 1 ) data = data[Object.keys( data )[0]];
+          files[ fileName ][ key ] = data;
+          cb( );
+        } catch ( e ) {
+          cb( );
+        }
       });
     };
 
