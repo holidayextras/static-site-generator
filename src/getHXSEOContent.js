@@ -17,10 +17,10 @@ const getHXSEOContent = ( opts ) => {
         for ( let i = 0; i < data.length; i++ ) {
           let newFile = clone( files[ fileName ] );
           newFile.pageData = data[i];
-          files[ data[i].pagename + '.html' ] = newFile;
+          files[ data[i].pageName + '.html' ] = newFile;
           newFiles.push({
             data: newFile,
-            key: data[i].pagename + '.html'
+            key: data[i].pageName + '.html'
           });
         }
         delete files[ fileName ];
@@ -84,6 +84,10 @@ const getHXSEOContent = ( opts ) => {
       if ( !fileParams.hxseo ) return callBack( );
       const options = opts.url;
       options.path = fileParams.hxseo.query;
+      if ( opts.token ) {
+        options.path += options.path.indexOf( '?' ) > -1 ? '&' : '?';
+        options.path += 'token=' + opts.token;
+      }
       return callAPI( options, fileName, fileParams, callBack );
     }, done );
   };
