@@ -6,21 +6,29 @@ const getHXSEOContent = ( opts ) => {
 
   return ( files, metalsmith, done ) => {
 
-    const getDataForPage = ( res, fileName, cb ) => {
+    const getDataForPage = ( res, fileName, cb, error ) => {
       let data = '';
       res.on( 'data', d => {
         data += d;
       });
       const newFiles = [ ];
       res.on( 'end', ( ) => {
-        data = JSON.parse( data );
+        try {
+          data = JSON.parse( data );
+          if ( data.message ) return error( data.message );
+          data = data.data;
+        } catch ( e ) {
+          return error( e );
+        }
         for ( let i = 0; i < data.length; i++ ) {
           let newFile = clone( files[ fileName ] );
-          newFile.pageData = data[i];
-          files[ data[i].pageName + '.html' ] = newFile;
+          newFile.pageData = data[i].attributes;
+          const pageName = newFile.pageData.pageName;
+          newFile.pagename = pageName + '.html';
+          files[ newFile.pagename ] = newFile;
           newFiles.push({
             data: newFile,
-            key: data[i].pageName + '.html'
+            key: newFile.pagename
           });
         }
         delete files[ fileName ];
@@ -59,9 +67,9 @@ const getHXSEOContent = ( opts ) => {
     };
 
     const callAPI = ( options, fileName, fileParams, callBack ) => {
-      new Promise( resolve => {
+      new Promise( ( resolve, reject ) => {
         http.get( options, res => {
-          getDataForPage( res, fileName, resolve );
+          getDataForPage( res, fileName, resolve, reject );
         });
       }).then( data => {
         if ( !fileParams.hxseo.extras ) return callBack( );
@@ -84,9 +92,9 @@ const getHXSEOContent = ( opts ) => {
       if ( !fileParams.hxseo ) return callBack( );
       const options = opts.url;
       options.path = fileParams.hxseo.query;
-      if ( opts.token ) {
+      if ( options.token ) {
         options.path += options.path.indexOf( '?' ) > -1 ? '&' : '?';
-        options.path += 'token=' + opts.token;
+        options.path += 'token=' + options.token;
       }
       return callAPI( options, fileName, fileParams, callBack );
     }, done );
