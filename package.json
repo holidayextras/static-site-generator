@@ -1,6 +1,6 @@
 {
   "name": "@holidayextras/static-site-generator",
-  "version": "4.0.1",
+  "version": "5.0.0",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",
@@ -50,6 +50,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-shell": "^1.1.2",
     "make-up": "^7.1.0",
-    "rimraf": "^2.2.8"
+    "rimraf": "^2.2.8",
+    "webpack": "^1.13.2"
   }
 }

@@ -19,7 +19,8 @@ const getDataSource = ( opts ) => {
   }
   if ( opts.dataSource.type === 'hxseo' ) {
     return hxseo({
-      'url': opts.dataSource.url
+      'url': opts.dataSource.url,
+      'token': opts.dataSource.token
     } );
   }
 
