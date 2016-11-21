@@ -8,10 +8,11 @@ const getDataSource = ( opts ) => {
 
   // Lets work out the datasource
   if ( opts.dataSource.type === 'prismic' ) {
+    const configLinkResolver = opts.config.linkResolver instanceof Function && opts.config.linkResolver;
     return prismic({
       'url': opts.dataSource.url,
       'accessToken': opts.dataSource.accessToken,
-      'linkResolver': opts.config.linkResolver || function( ctx, doc ) {
+      'linkResolver': configLinkResolver || function( ctx, doc ) {
         if ( doc.isBroken ) return '';
         return '/' + doc.uid;
       }
