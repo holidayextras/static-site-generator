@@ -11,7 +11,7 @@ const getDataSource = ( opts ) => {
     return prismic({
       'url': opts.dataSource.url,
       'accessToken': opts.dataSource.accessToken,
-      'linkResolver': function( ctx, doc ) {
+      'linkResolver': opts.config.linkResolver || function( ctx, doc ) {
         if ( doc.isBroken ) return '';
         return '/' + doc.uid;
       }
