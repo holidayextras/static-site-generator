@@ -16,23 +16,23 @@ const webpackPages = ( globalOptions ) => {
     globalOptions.tempDir = path.join( metalsmith._directory, '_tempOutput' );
     globalOptions.dest = path.join( metalsmith._directory, globalOptions.dest );
 
-    const generateOutput = ( template, props, options, next ) => {
+    const generateOutput = ( template, props, options ) => {
       const output = `var React = require( 'react' );
                       var ReactDOM = require( 'react-dom' );
                       var Element = require( '${template}' );
                       if ( typeof Element.default === 'function' ) Element = Element.default;
-                      var props = ${JSON.stringify( props )} ';
+                      var props = ${JSON.stringify( props )};
                       var renderedElement = ReactDOM.render( <Element {...props} />, document.getElementById( 'content' ));`;
 
       const destFilename = options.destFilename;
       const filename = path.join( options.tempDir, destFilename );
+      outputFiles[ destFilename.replace( '.js', '' ) ] = filename;
 
       return new Promise((resolve, reject) => {
         mkdirp( path.dirname( filename ), error => {
           if ( error ) return reject( error );
-          fs.writeFile( filename, output, ( error ) => {
-            if (error) return reject(error);
-            outputFiles[ destFilename.replace( '.js', '' ) ] = filename;
+          fs.writeFile( filename, output, ( err ) => {
+            if (err) return reject(err);
             resolve('done');
           });
         });
@@ -42,7 +42,7 @@ const webpackPages = ( globalOptions ) => {
     const iterator = ( prop, file ) => {
       const props = _.extend( { }, prop, metalsmith._metadata );
       props.tpl = ( globalOptions.noConflict ) ? 'rtemplate' : 'template';
-      if ( !props[ props.tpl ] ) return;
+      if ( !props[ props.tpl ] ) return false;
       delete props.contents;
       delete props.stats;
       delete props.mode;
