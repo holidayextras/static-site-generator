@@ -1,5 +1,6 @@
 import prismic from './metalsmith-prismic';
 import hxseo from './getHXSEOContent';
+import apiCaller from './apiCaller';
 
 const getDataSource = ( opts ) => {
   if ( !opts.dataSource ) return false;
@@ -24,7 +25,10 @@ const getDataSource = ( opts ) => {
       'token': opts.dataSource.token
     } );
   }
-
+  if ( opts.dataSource.type === 'api' ) {
+    return apiCaller( opts.dataSource );
+  }
+  return false; // fallback
 };
 
 export default getDataSource;

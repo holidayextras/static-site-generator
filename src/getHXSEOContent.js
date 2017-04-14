@@ -36,7 +36,7 @@ const getHXSEOContent = ( opts ) => {
         }
         // Remove the markdown file from metalsmith as its not an actual page
         delete files[ fileName ];
-        cb( newFiles );
+        return cb( newFiles );
       });
     };
 
@@ -51,25 +51,28 @@ const getHXSEOContent = ( opts ) => {
           data = JSON.parse( data );
           if ( Object.keys( data ).length === 1 ) data = data[Object.keys( data )[0]];
           files[ fileName ][ key ] = data;
-          cb( );
+          return cb( );
         } catch ( e ) {
-          cb( );
+          return cb( );
         }
       });
     };
 
     // Call the additional resource for each page returned and attach to page props
     const asyncGetQuery = ( request, option, currentFile, opt, extraCallBack ) => {
-      if ( !currentFile.data.pageData[option[1]] ) return extraCallBack( );
-      let value = currentFile.data.pageData[option[1]];
-      if ( value.indexOf( ',' )) value = value.replace( / /g, '' ); // Dont want spaces in array
-      const requestOptions = {
-        hostname: request.hostname,
-        path: request.path.replace( option[0], value )
-      };
-      http.get( requestOptions, ( resExtra ) => {
-        getExtraDataForPage( resExtra, currentFile.key, opt, extraCallBack );
-      });
+      if ( currentFile.data.pageData[option[1]] ) {
+        let value = currentFile.data.pageData[option[1]];
+        if ( value.indexOf( ',' )) value = value.replace( / /g, '' ); // Dont want spaces in array
+        const requestOptions = {
+          hostname: request.hostname,
+          path: request.path.replace( option[0], value )
+        };
+        http.get( requestOptions, ( resExtra ) => {
+          getExtraDataForPage( resExtra, currentFile.key, opt, extraCallBack );
+        });
+      } else {
+        extraCallBack( );
+      }
     };
 
     // Call the API per markdown file and get data for each one returned.
@@ -82,18 +85,20 @@ const getHXSEOContent = ( opts ) => {
       }).then( data => {
         // Now check for additional requests per page returned from API call
         // This can be prodlib data based on an SEO object
-        if ( !fileParams.hxseo.extras ) return callBack( );
-        async.each( Object.keys( fileParams.hxseo.extras ), ( opt, extraCallBack ) => {
-          if ( !fileParams.hxseo.extras[ opt ].path ) return extraCallBack( );
-          const option = fileParams.hxseo.extras[ opt ].path.match( /<%([^%].*)%>/ );
-          async.each( data, ( currentFile, cb ) => {
-            asyncGetQuery( fileParams.hxseo.extras[ opt ], option, currentFile, opt, cb );
-          }, ( ) => {
-            extraCallBack( );
-          });
-        }, ( ) => {
+        if ( fileParams.hxseo.extras ) {
+          async.each( Object.keys( fileParams.hxseo.extras ), ( opt, extraCallBack ) => {
+            if ( fileParams.hxseo.extras[ opt ].path ) {
+              const option = fileParams.hxseo.extras[ opt ].path.match( /<%([^%].*)%>/ );
+              async.each( data, ( currentFile, cb ) => {
+                asyncGetQuery( fileParams.hxseo.extras[ opt ], option, currentFile, opt, cb );
+              }, extraCallBack);
+            } else {
+              extraCallBack( );
+            }
+          }, callBack);
+        } else {
           callBack( );
-        });
+        }
       });
     };
 

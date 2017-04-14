@@ -31,9 +31,9 @@ const webpackPages = ( globalOptions ) => {
       return new Promise((resolve, reject) => {
         mkdirp( path.dirname( filename ), error => {
           if ( error ) return reject( error );
-          fs.writeFile( filename, output, ( err ) => {
+          return fs.writeFile( filename, output, ( err ) => {
             if (err) return reject(err);
-            resolve('done');
+            return resolve('done');
           });
         });
       });
@@ -66,7 +66,7 @@ const webpackPages = ( globalOptions ) => {
     });
 
     // Call the chain
-    Promise
+    return Promise
       .all(promises)
       .then(finishAll)
       .catch(function(err) {
