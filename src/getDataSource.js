@@ -20,10 +20,7 @@ const getDataSource = ( opts ) => {
     });
   }
   if ( opts.dataSource.type === 'hxseo' ) {
-    return hxseo({
-      'url': opts.dataSource.url,
-      'token': opts.dataSource.token
-    } );
+    return hxseo( opts.dataSource.url );
   }
   if ( opts.dataSource.type === 'api' ) {
     return apiCaller( opts.dataSource );
