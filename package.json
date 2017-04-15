@@ -9,12 +9,16 @@
   "author": "Richard Stevens <richard.stevens@holidayextras.com",
   "license": "MIT",
   "main": "lib/index.js",
+  "watch": {
+    "trans": "src"
+  },
   "scripts": {
     "build": "npm run trans",
     "prepublish": "npm run build",
     "trans": "node_modules/.bin/babel src/ -d lib/",
     "lint": "cp src/eslintrc .eslintrc && make-up src/",
-    "ci": "npm run lint"
+    "ci": "npm run lint",
+    "watch": "npm-watch"
   },
   "engines": {
     "node": "6.1.0"
@@ -47,6 +51,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-shell": "^1.1.2",
     "make-up": "^10.0.0",
+    "npm-watch": "^0.1.8",
     "rimraf": "^2.2.8",
     "webpack": "^1.13.2"
   }
