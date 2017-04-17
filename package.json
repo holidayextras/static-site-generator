@@ -33,7 +33,7 @@
     "metalsmith-assets": "^0.1.0",
     "metalsmith-markdown": "^0.2.1",
     "prismic.io": "^3.1.3",
-    "metalsmith-react-tpl": "^0.2.3",
+    "metalsmith-react-tpl": "^1.0.0",
     "mkdirp": "^0.5.1",
     "moment": "^2.11.1",
     "publish": "^0.5.0",

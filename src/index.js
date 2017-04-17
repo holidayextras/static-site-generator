@@ -31,7 +31,7 @@ const MetalSmithLoader = ( opts ) => {
     .use( template({
       babel: true,
       noConflict: false,
-      isStatic: true,
+      isStatic: opts.showReactIDs ? false : true,
       baseFile: 'layout.jsx',
       baseFileDirectory: opts.layoutDir,
       directory: opts.templateDir
