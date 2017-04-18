@@ -1,6 +1,6 @@
 {
   "name": "@holidayextras/static-site-generator",
-  "version": "5.0.2",
+  "version": "6.0.0",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",
@@ -9,32 +9,38 @@
   "author": "Richard Stevens <richard.stevens@holidayextras.com",
   "license": "MIT",
   "main": "lib/index.js",
+  "watch": {
+    "trans": "src"
+  },
   "scripts": {
     "build": "npm run trans",
     "prepublish": "npm run build",
     "trans": "node_modules/.bin/babel src/ -d lib/",
-    "lint": "cp src/eslintrc .eslintrc && node_modules/.bin/make-up src/",
-    "ci": "npm run lint"
+    "lint": "standard src/**/*",
+    "ci": "npm run lint",
+    "watch": "npm-watch"
   },
   "engines": {
-    "node": "4.4.4"
+    "node": "6.1.0"
+  },
+  "standard": {
+    "ignore": [
+      "src/metalsmith-prismic.js"
+    ]
   },
   "dependencies": {
     "async": "^1.5.2",
     "clone": "^1.0.2",
     "debug": "^2.2.0",
-    "fs": "0.0.2",
-    "http": "0.0.0",
     "jsonp": "^0.2.0",
     "meta-marked": "^0.4.0",
     "metalsmith": "^1.3.0",
     "metalsmith-assets": "^0.1.0",
     "metalsmith-markdown": "^0.2.1",
     "prismic.io": "^3.1.3",
-    "metalsmith-react-tpl": "^0.2.3",
+    "metalsmith-react-tpl": "^1.0.0",
     "mkdirp": "^0.5.1",
     "moment": "^2.11.1",
-    "path": "^0.12.7",
     "publish": "^0.5.0",
     "react": "^0.14.3",
     "react-dom": "^0.14.3",
@@ -49,8 +55,9 @@
     "grunt-contrib-uglify": "^0.11.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-shell": "^1.1.2",
-    "make-up": "^7.1.0",
+    "npm-watch": "^0.1.8",
     "rimraf": "^2.2.8",
+    "standard": "^10.0.2",
     "webpack": "^1.13.2"
   }
 }

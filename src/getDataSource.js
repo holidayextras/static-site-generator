@@ -1,5 +1,6 @@
 import prismic from './metalsmith-prismic';
 import hxseo from './getHXSEOContent';
+import apiCaller from './apiCaller';
 
 const getDataSource = ( opts ) => {
   if ( !opts.dataSource ) return false;
@@ -19,12 +20,12 @@ const getDataSource = ( opts ) => {
     });
   }
   if ( opts.dataSource.type === 'hxseo' ) {
-    return hxseo({
-      'url': opts.dataSource.url,
-      'token': opts.dataSource.token
-    } );
+    return hxseo( opts.dataSource.url );
   }
-
+  if ( opts.dataSource.type === 'api' ) {
+    return apiCaller( opts.dataSource );
+  }
+  return false; // fallback
 };
 
 export default getDataSource;
