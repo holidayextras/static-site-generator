@@ -144,7 +144,7 @@ const PageData = class PageData {
     const fetchedPageData = Object.keys(this.params.files).map(fileName => {
       return new Promise((resolve, reject) => {
         let fileParams = this.params.files[fileName]
-        if (this.params.initSetup) fileParams = this.params.initSetup(fileParams)
+        if (this.params.opts.initSetup) fileParams = this.params.opts.initSetup(fileParams)
         if (!fileParams.dataSource) return reject(new Error('SSG Error: no dataSource'))
         return this.callAPI(fileName, fileParams).then(data => {
           this.makeExtraAPICalls(data, fileParams, resolve)
