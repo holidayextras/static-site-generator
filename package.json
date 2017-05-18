@@ -16,7 +16,7 @@
     "build": "npm run trans",
     "prepublish": "npm run build",
     "trans": "node_modules/.bin/babel src/ -d lib/",
-    "lint": "standard src/**/*",
+    "lint": "standard src/**/* src/* --fix",
     "ci": "npm run lint",
     "watch": "npm-watch"
   },
