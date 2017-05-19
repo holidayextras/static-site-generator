@@ -29,25 +29,23 @@ This repoistory is available on npm [here](https://www.npmjs.com/package/@holida
 ## Redux
 To add a store to the SSG build when using a React as a template, you can either pass in a store to the `src/*.md` files or you can pass in a global store into the main SSG setup.
 ```
-SSG.default({
+SSG({
   src: path.join( __dirname, '..' ),
   clean: clean,
   config: config,
+  showReactIDs: true,
   dataSource: {
-    type: 'hxseo',
-    url: {
-      host: 'hapi.holidayextras.co.uk',
-      port: '80',
-      token: token,
-      store: '../stores/mainState.js'
-    }
+    type: 'api',
+    token: token,
+    initSetup: initSetup,
+    state: '../stores/mainStore.js'
   },
   layoutDir: '_layouts',
   templateDir: '_layouts/_templates',
   destination: '_site',
   assets: 'public',
   webpack: 'webpack.config.js'
-});
+})
 ```
 *or*
 ```
