@@ -26,6 +26,46 @@ You can pass in a `config` param too setup an object used in pages (domain, defa
 ## Publishing
 This repoistory is available on npm [here](https://www.npmjs.com/package/@holidayextras/static-site-generator), if you wish to release a new version simply bump the package.json version number and the build process will take care of the rest.
 
+## Redux
+To add a store to the SSG build when using a React as a template, you can either pass in a store to the `src/*.md` files or you can pass in a global store into the main SSG setup.
+```
+SSG.default({
+  src: path.join( __dirname, '..' ),
+  clean: clean,
+  config: config,
+  dataSource: {
+    type: 'hxseo',
+    url: {
+      host: 'hapi.holidayextras.co.uk',
+      port: '80',
+      token: token,
+      store: '../stores/mainState.js'
+    }
+  },
+  layoutDir: '_layouts',
+  templateDir: '_layouts/_templates',
+  destination: '_site',
+  assets: 'public',
+  webpack: 'webpack.config.js'
+});
+```
+*or*
+```
+---
+template: mainTemplate.jsx
+baseFile: baseTemplate.jsx
+permalink: false
+store: '../stores/mainStore.js'
+dataSource:
+  host: 'api1.example.com'
+  port: '80'
+  type: 'api1'
+  query: '/getPagesFromHere?pages=test/'
+  repeater: 'data'
+  pageDataField: 'attributes'
+  pageNameField: 'pageName'
+```
+
 ## Building multiple endpoints
 You can now build multiple API endpoints within a single app / template group, please see this example on how you can do this.
 

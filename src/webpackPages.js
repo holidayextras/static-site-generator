@@ -15,18 +15,19 @@ const webpackPages = (globalOptions) => {
     globalOptions.tempDir = path.join(metalsmith._directory, '_tempOutput')
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
 
-    const generateOutput = ( template, props, options ) => {
+    const generateOutput = (template, props, options) => {
+      if (props.dataSource.store) props.store = props.dataSource.store
       let output = `var React = require( 'react' );
                       var ReactDOM = require( 'react-dom' );
                       var Element = require( '${template}' );
                       if ( typeof Element.default === 'function' ) Element = Element.default;
-                      var props = ${JSON.stringify( props )};`;
-      if ( props.store ) {
-        output += 'var Provider = require( \'react-redux\' ).Provider;';
-        output += 'var store = require( \'' + props.store + '\' );';
-        output += 'var renderedElement = ReactDOM.render( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( \'content\' ));';
+                      var props = ${JSON.stringify(props)};`
+      if (props.store) {
+        output += 'var Provider = require( \'react-redux\' ).Provider;'
+        output += 'var store = require( \'' + props.store + '\' );'
+        output += 'var renderedElement = ReactDOM.render( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( \'content\' ));'
       } else {
-        output += 'var renderedElement = ReactDOM.render( <Element {...props} />, document.getElementById( \'content\' ));';
+        output += 'var renderedElement = ReactDOM.render( <Element {...props} />, document.getElementById( \'content\' ));'
       }
 
       const destFilename = options.destFilename
