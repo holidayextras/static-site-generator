@@ -27,7 +27,7 @@ You can pass in a `config` param too setup an object used in pages (domain, defa
 This repoistory is available on npm [here](https://www.npmjs.com/package/@holidayextras/static-site-generator), if you wish to release a new version simply bump the package.json version number and the build process will take care of the rest.
 
 ## Redux
-To add a store to the SSG build when using a React as a template, you can either pass in a store to the `src/*.md` files or you can pass in a global store into the main SSG setup.
+To add a store to the SSG build when using `React` as a template, you can either pass in a store to the `src/*.md` files or you can pass in a global store into the main SSG setup.
 ```
 SSG({
   src: path.join( __dirname, '..' ),
