@@ -105,7 +105,7 @@ const PageData = class PageData {
         return new Promise((resolve, reject) => {
           if (!currentFile.data.pageData[option[1]]) return reject(new Error('No extra options found'))
           const value = currentFile.data.pageData[option[1]]
-          fileParams = loop[ opt ]
+          fileParams = Object.assign({}, loop[ opt ])
           fileParams.query = fileParams.query.replace(option[0], value)
           fileParams.dataSource = fileParams // Needs to double up for functions
           const request = this.prepareRequest(fileParams)
