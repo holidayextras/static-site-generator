@@ -131,7 +131,7 @@ const PageData = class PageData {
         accept: '*/*'
       }
     }
-    request.path = fileParams.dataSource.query
+    request.path = fileParams.dataSource.query.replace(/\s+/gm, '')
     if (opts.token && opts.token.name && opts.token.value) {
       request.path += request.path.indexOf('?') > -1 ? '&' : '?'
       request.path += opts.token.name + '=' + opts.token.value
