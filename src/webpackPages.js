@@ -16,15 +16,25 @@ const webpackPages = (globalOptions) => {
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
 
     const generateOutput = (template, props, options) => {
-      if (props.dataSource.store) props.store = props.dataSource.store
+      if (props.dataSource.store) {
+        props.store = ''
+        if (props.pagename && !props.dataSource.store.includes('../')) {
+          props.store = props.pagename.split('/').map(i => '../').join('')
+        }
+        props.store += props.dataSource.store
+      }
       let output = `var React = require( 'react' );
                       var ReactDOM = require( 'react-dom' );
                       var Element = require( '${template}' );
+                      window.ReactRoot = Element;
                       if ( typeof Element.default === 'function' ) Element = Element.default;
-                      var props = ${JSON.stringify(props)};`
+                      var props = ${JSON.stringify(props)};
+                      window.ReactRootProps = props;`
       if (props.store) {
         output += 'var Provider = require( \'react-redux\' ).Provider;'
         output += 'var store = require( \'' + props.store + '\' );'
+        output += 'window.ReactRootProvider = Provider;'
+        output += 'window.ReactRootStore = store;'
         output += 'var renderedElement = ReactDOM.render( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( \'content\' ));'
       } else {
         output += 'var renderedElement = ReactDOM.render( <Element {...props} />, document.getElementById( \'content\' ));'
