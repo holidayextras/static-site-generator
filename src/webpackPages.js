@@ -32,7 +32,7 @@ const webpackPages = (globalOptions) => {
                       if ( typeof Element.default === 'function' ) Element = Element.default;
                       var props = ${JSON.stringify(props)};
                       window.ReactRootProps = props;
-                      window.SSGTemplateGroup = '${templateGroup}'`
+                      window.SSGTemplateGroup = '${templateGroup}';`
       if (props.store) {
         output += 'var Provider = require( \'react-redux\' ).Provider;'
         output += 'var store = require( \'' + props.store + '\' );'
