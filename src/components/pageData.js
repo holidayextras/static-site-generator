@@ -42,6 +42,7 @@ const PageData = class PageData {
       newFile.pagename = newFile.pageName = pageName + '.html'
 
       // Create the new page in metalsmith
+      newFile.srcFile = fileName
       if (!extraFiles) this.params.files[ newFile.pageName ] = newFile
       data[i] = newFile
       newFiles.push({

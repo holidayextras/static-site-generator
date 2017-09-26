@@ -23,13 +23,16 @@ const webpackPages = (globalOptions) => {
         }
         props.store += props.dataSource.store
       }
+      const templateGroups = metalsmith._directory.split('/templates')
+      const templateGroup = (templateGroups.length > 0) ? '/templates' + templateGroups[1] : ''
       let output = `var React = require( 'react' );
                       var ReactDOM = require( 'react-dom' );
                       var Element = require( '${template}' );
                       window.ReactRoot = Element;
                       if ( typeof Element.default === 'function' ) Element = Element.default;
                       var props = ${JSON.stringify(props)};
-                      window.ReactRootProps = props;`
+                      window.ReactRootProps = props;
+                      window.SSGTemplateGroup = '${templateGroup}';`
       if (props.store) {
         output += 'var Provider = require( \'react-redux\' ).Provider;'
         output += 'var store = require( \'' + props.store + '\' );'
