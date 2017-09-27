@@ -5,6 +5,7 @@ import template from 'metalsmith-react-tpl'
 import getDataSource from './getDataSource'
 import assets from 'metalsmith-assets'
 import getPrismicContent from './getPrismicContent'
+import singleFileOnly from './singleFileOnly'
 import webpackPages from './webpackPages'
 
 const MetalSmithLoader = (opts) => {
@@ -23,6 +24,7 @@ const MetalSmithLoader = (opts) => {
     .clean(opts.clean)
     .metadata(opts.config || { })
     .use(dataSource)
+    .use(singleFileOnly())
 
   if (opts.dataSource && opts.dataSource.type === 'prismic') {
     metalSmith.use(getPrismicContent())
