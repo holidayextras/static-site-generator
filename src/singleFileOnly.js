@@ -1,6 +1,6 @@
 const singleFileOnly = (opts) => {
   return (files, metalsmith, done) => {
-    if (!process.env.srcFile && !process.env.srcPage) done()
+    if (!process.env.srcFile && !process.env.srcPage) return done()
     if (process.env.srcPage) {
       Object.keys(files).map(fileName => {
         if (fileName !== process.env.srcPage) delete files[fileName]
