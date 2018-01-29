@@ -54,6 +54,7 @@ const MetalSmithLoader = (opts) => {
 
   metalSmith.build(function (err) {
     if (err) throw err
+    if (opts.callback) opts.callback()
   })
 }
 
