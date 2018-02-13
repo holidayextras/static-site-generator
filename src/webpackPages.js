@@ -38,9 +38,9 @@ const webpackPages = (globalOptions) => {
         output += 'var store = require( \'' + props.store + '\' );'
         output += 'window.ReactRootProvider = Provider;'
         output += 'window.ReactRootStore = store;'
-        output += 'var renderedElement = ReactDOM.hydrate( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( \'content\' ));'
+        output += 'var renderedElement = ReactDOM.render( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( \'content\' ));'
       } else {
-        output += 'var renderedElement = ReactDOM.hydrate( <Element {...props} />, document.getElementById( \'content\' ));'
+        output += 'var renderedElement = ReactDOM.render( <Element {...props} />, document.getElementById( \'content\' ));'
       }
 
       const destFilename = options.destFilename
