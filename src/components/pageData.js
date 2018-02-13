@@ -140,6 +140,21 @@ const PageData = class PageData {
     return request
   }
 
+  // Remove anything in the markdown query that isn't this single page
+  singlePageReduce (query) {
+    if (!query) return false
+    const selector = '&filter[pageName]='
+    const pageList = query.split(selector)
+    query = query.split(selector).slice(0, 1)
+    let newQuery = ''
+    pageList.filter(page => {
+      return page === process.env.singlePage
+    }).map(page => {
+      newQuery += selector + page
+    })
+    return newQuery !== '' ? query + newQuery : false
+  }
+
   // Loop over all the markdown files and lookup the data for the API request
   init () {
     const fetchedPageData = Object.keys(this.params.files).map(fileName => {
@@ -147,6 +162,11 @@ const PageData = class PageData {
         let fileParams = this.params.files[fileName]
         if (this.params.opts.initSetup) fileParams = this.params.opts.initSetup(fileParams)
         if (!fileParams.dataSource) return reject(new Error('SSG Error: no dataSource'))
+        if (process.env.singlePage) fileParams.dataSource.query = this.singlePageReduce(fileParams.dataSource.query)
+        if (!fileParams.dataSource.query) {
+          delete this.params.files[fileName]
+          return resolve()
+        }
         return this.callAPI(fileName, fileParams).then(data => {
           this.makeExtraAPICalls(data, fileParams, resolve)
         }).catch(reject)
