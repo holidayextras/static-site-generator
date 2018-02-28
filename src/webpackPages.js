@@ -16,7 +16,7 @@ const webpackPages = (globalOptions) => {
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
 
     const generateOutput = (template, props, options) => {
-      if (props.dataSource.store) {
+      if (props.dataSource && props.dataSource.store) {
         props.store = ''
         if (props.pagename && !props.dataSource.store.includes('../')) {
           props.store = props.pagename.split('/').map(i => '../').join('')
