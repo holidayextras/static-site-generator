@@ -14,7 +14,7 @@ const getPrismicContent = () => {
     const getPrismicData = (pageData, file) => {
       Object.keys(pageData).forEach(data => {
         if (typeof pageData[data].json.value === 'string') {
-          files[file].pageData[ data ] = pageData[data].json.value
+          files[file].pageData[data] = pageData[data].json.value
         }
         // Get the data from fetchLinks fragments to save the html
         if (pageData[data].json && pageData[data].json.fragments) getFragmentValues(pageData[data], file, data)
@@ -25,8 +25,9 @@ const getPrismicContent = () => {
     }
 
     Object.keys(files).forEach(file => {
-      files[file].pageData = getPrismicData(files[file].prismic.page.results[0].data, file)
+      files[file].pageData = files[file].prismic.page.results[0].data
       files[file].pagename = file
+      getPrismicData(files[file].pageData, file)
     })
     return done()
   }
