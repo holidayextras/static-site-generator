@@ -52,6 +52,10 @@ const MetalSmithLoader = (opts) => {
       webpack: require(path.join(opts.src, opts.webpack))
     }))
 
+  if (opts.markDownSource) {
+    metalSmith.source(opts.markDownSource)
+  }
+
   metalSmith.build(function (err) {
     if (err) throw err
     if (opts.callback) opts.callback()
