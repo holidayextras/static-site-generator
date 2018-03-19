@@ -269,7 +269,7 @@ function plugin(config) {
                 for (var i = 0; i < file.prismic[collectionQuery].results.length; i++) {
 
                     // clone the file and replace the original collectionQuery results with the current result
-                    var newFile = _.clone(file);
+                    var newFile = JSON.parse(JSON.stringify(file))
                     newFile.prismic[collectionQuery].results = [file.prismic[collectionQuery].results[i]];
 
                     // add the filename to the ctx object to make it available for use in the linkResolver function
