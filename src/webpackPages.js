@@ -16,7 +16,7 @@ const webpackPages = (globalOptions) => {
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
 
     const generateOutput = (template, props, options) => {
-      if (props.dataSource && props.dataSource.store) {
+      if (props.dataSource.store) {
         props.store = ''
         if (props.pagename && !props.dataSource.store.includes('../')) {
           props.store = props.pagename.split('/').map(i => '../').join('')
@@ -38,9 +38,9 @@ const webpackPages = (globalOptions) => {
         output += 'var store = require( \'' + props.store + '\' );'
         output += 'window.ReactRootProvider = Provider;'
         output += 'window.ReactRootStore = store;'
-        output += 'var renderedElement = ReactDOM.hydrate( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( \'content\' ));'
+        output += 'var renderedElement = ReactDOM.render( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( \'content\' ));'
       } else {
-        output += 'var renderedElement = ReactDOM.hydrate( <Element {...props} />, document.getElementById( \'content\' ));'
+        output += 'var renderedElement = ReactDOM.render( <Element {...props} />, document.getElementById( \'content\' ));'
       }
 
       const destFilename = options.destFilename
