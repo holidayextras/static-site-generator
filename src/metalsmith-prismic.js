@@ -4,7 +4,6 @@ var each        = require('async').each
 var Prismic     = require('prismic.io').Prismic
 var debug       = require('debug')('metalsmith-prismic')
 var _           = require('underscore')
-var clone       = require('clone')
 /**
  * Expose `plugin`.
  */
@@ -270,7 +269,7 @@ function plugin(config) {
                 for (var i = 0; i < file.prismic[collectionQuery].results.length; i++) {
 
                     // clone the file and replace the original collectionQuery results with the current result
-                    var newFile = clone(file);
+                    var newFile = JSON.parse(JSON.stringify(file))
                     newFile.prismic[collectionQuery].results = [file.prismic[collectionQuery].results[i]];
 
                     // add the filename to the ctx object to make it available for use in the linkResolver function
