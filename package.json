@@ -1,6 +1,6 @@
 {
   "name": "@holidayextras/static-site-generator",
-  "version": "7.0.7",
+  "version": "7.0.8",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",
@@ -20,9 +20,6 @@
     "ci": "npm run lint",
     "watch": "npm-watch"
   },
-  "engines": {
-    "node": "6.1.0"
-  },
   "standard": {
     "ignore": [
       "src/metalsmith-prismic.js"
@@ -37,7 +34,7 @@
     "metalsmith": "^2.3.0",
     "metalsmith-assets": "^0.1.0",
     "metalsmith-markdown": "^0.2.1",
-    "metalsmith-react-tpl": "^2.0.0",
+    "metalsmith-react-tpl": "^2.2.0",
     "mkdirp": "^0.5.1",
     "moment": "^2.11.1",
     "prismic.io": "^3.1.3",
