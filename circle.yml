@@ -16,13 +16,14 @@ references:
   restore_cache: &restore_cache
     restore_cache:
       key: *cache_key
-      name: Restore Src Cache
+      name: Restore Src/Lib Cache
   save_cache: &save_cache
     save_cache:
       key: *cache_key
-      name: Save Src Cache
+      name: Save Src/Lib Cache
       paths:
         - ./src/
+        - '/lib/'
 
 defaults: &defaults
   working_directory: *workspace_root
