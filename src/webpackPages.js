@@ -16,6 +16,7 @@ const webpackPages = (globalOptions) => {
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
 
     const generateOutput = (template, props, options) => {
+      const method = props.dataSource && props.dataSource.hydrate ? 'hydrate' : 'render'
       if (props.dataSource && props.dataSource.store) {
         props.store = ''
         if (props.pagename && !props.dataSource.store.includes('../')) {
@@ -26,21 +27,21 @@ const webpackPages = (globalOptions) => {
       const templateGroups = metalsmith._directory.split('/templates')
       const templateGroup = (templateGroups.length > 0) ? '/templates' + templateGroups[1] : ''
       let output = `var React = require( 'react' );
-                      var ReactDOM = require( 'react-dom' );
-                      var Element = require( '${template}' );
-                      window.ReactRoot = Element;
-                      if ( typeof Element.default === 'function' ) Element = Element.default;
-                      var props = ${JSON.stringify(props)};
-                      window.ReactRootProps = props;
-                      window.SSGTemplateGroup = '${templateGroup}';`
+                    var ReactDOM = require( 'react-dom' );
+                    var Element = require( '${template}' );
+                    window.ReactRoot = Element;
+                    if ( typeof Element.default === 'function' ) Element = Element.default;
+                    var props = ${JSON.stringify(props)};
+                    window.ReactRootProps = props;
+                    window.SSGTemplateGroup = '${templateGroup}';`
       if (props.store) {
-        output += 'var Provider = require( \'react-redux\' ).Provider;'
-        output += 'var store = require( \'' + props.store + '\' );'
-        output += 'window.ReactRootProvider = Provider;'
-        output += 'window.ReactRootStore = store;'
-        output += 'var renderedElement = ReactDOM.hydrate( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( \'content\' ));'
+        output += `var Provider = require( 'react-redux' ).Provider;
+                   var store = require( '${props.store}' );
+                   window.ReactRootProvider = Provider;
+                   window.ReactRootStore = store;
+                   var renderedElement = ReactDOM.${method}( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( 'content' ));`
       } else {
-        output += 'var renderedElement = ReactDOM.hydrate( <Element {...props} />, document.getElementById( \'content\' ));'
+        output += `var renderedElement = ReactDOM.${method}( <Element {...props} />, document.getElementById( 'content' ));`
       }
 
       const destFilename = options.destFilename
