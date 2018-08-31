@@ -7,6 +7,7 @@ import assets from 'metalsmith-assets'
 import getPrismicContent from './getPrismicContent'
 import singleFileOnly from './singleFileOnly'
 import webpackPages from './webpackPages'
+import webpackDevServer from './webpackDevServer'
 
 const MetalSmithLoader = (opts) => {
   let isStatic = true
@@ -17,6 +18,9 @@ const MetalSmithLoader = (opts) => {
   if (!opts.destination) throw new Error('No destination param provided for the output directory')
   if (!opts.assets) throw new Error('No assets param provided for the assets directory')
   if (opts.showReactIDs) isStatic = false
+  if (opts.devMode) {
+    opts.config = Object.assign({}, opts.config, { devMode: true })
+  }
 
   const dataSource = getDataSource(opts)
 
@@ -51,6 +55,10 @@ const MetalSmithLoader = (opts) => {
       dest: opts.destination + '/js',
       webpack: require(path.join(opts.src, opts.webpack))
     }))
+
+  if (opts.devMode) {
+    metalSmith.use(webpackDevServer(opts.devMode))
+  }
 
   if (opts.markDownSource) {
     metalSmith.source(opts.markDownSource)

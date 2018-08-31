@@ -73,8 +73,11 @@ const webpackPages = (globalOptions) => {
 
     const finishAll = () => {
       globalOptions.webpack.entry = outputFiles
+      metalsmith.webpack = globalOptions.webpack
       webpack(globalOptions.webpack, err => {
-        rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
+        if (!globalOptions.webpack.devServer) {
+          rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
+        }
         done(err)
       })
     }
