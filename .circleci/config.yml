@@ -69,7 +69,7 @@ jobs:
           name: Deploy script
           command: |
             echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
-            sh ./scripts/publish.sh
+            npm publish
 
 
 workflows:
