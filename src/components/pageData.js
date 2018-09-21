@@ -104,7 +104,12 @@ const PageData = class PageData {
       const option = loop[ opt ].query.match(/<%([^%].*)%>/)
       const extraPageData = data.map(currentFile => {
         return new Promise((resolve, reject) => {
-          if (!currentFile.data.pageData[option[1]]) return reject(new Error('No extra options found'))
+          if (!currentFile.data.pageData[option[1]]) {
+            const errorMsg = `No extra options found for ${this.params.files[currentFile.key].pageName}`
+            console.log(errorMsg)
+            reject(new Error(errorMsg))
+            return delete this.params.files[currentFile.key]
+          }
           const value = currentFile.data.pageData[option[1]]
           fileParams = Object.assign({}, loop[ opt ])
           fileParams.query = fileParams.query.replace(option[0], value)
@@ -119,7 +124,8 @@ const PageData = class PageData {
           })
         })
       })
-      Promise.all(extraPageData).then(callBack)
+      Promise.all(extraPageData).then(callBack).catch(callBack)
+      return opt
     })
   }
 
@@ -174,8 +180,8 @@ const PageData = class PageData {
     })
     return Promise.all(fetchedPageData).then(() => {
       return this.returnFiles()
-    }).catch(e => {
-      throw e
+    }).catch(() => {
+      return this.returnFiles()
     })
   }
 }

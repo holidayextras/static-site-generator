@@ -23,6 +23,9 @@ const getHXSEOContent = (opts) => {
     }).then((data) => {
       files = data
       done()
+    }).catch((err) => {
+      console.log(err)
+      done()
     })
   }
 }
