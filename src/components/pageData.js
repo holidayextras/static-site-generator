@@ -150,6 +150,7 @@ const PageData = class PageData {
   singlePageReduce (query) {
     if (!query) return false
     const selector = '&filter[pageName]='
+    if (query.indexOf(selector) < 0) return query
     const pageList = query.split(selector)
     query = query.split(selector).slice(0, 1)
     let newQuery = ''
