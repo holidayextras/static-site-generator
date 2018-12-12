@@ -60,17 +60,6 @@ jobs:
       # Restore dependencies from cache
       - *restore_workspace
       - run: npm run ci
-  deploy:
-    <<: *defaults
-    steps:
-      # Restore dependencies from cache
-      - *restore_workspace
-      - run:
-          name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/static-site-generator/.npmrc
-      - run:
-          name: Publish package
-          command: npm publish
 
 
 workflows:
@@ -81,21 +70,3 @@ workflows:
       - test:
           requires:
             - initialise
-          filters:
-            branches:
-              ignore: master
-      - deploy:
-          requires:
-            - initialise
-          filters:
-            branches:
-              only: master
-notify:
-  webhooks:
-    - url: https://hxbot.dock-yard.io/hubot/circle-ci
-    - url: https://us-central1-hx-data-production.cloudfunctions.net/deploymentNotifier
-experimental:
-  notify:
-    branches:
-      only:
-        - master
