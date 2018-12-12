@@ -65,6 +65,11 @@ const PageData = class PageData {
       })
       res.on('end', () => {
         try {
+          data = data.split('').map(char => char.charCodeAt(0).toString().length < 4 ? char : '').join('').replace(/(\\u|\\x|\\d)\d{4}/gm, '')
+        } catch (e) {
+          console.log(e, 'Can\'t convert charCodeAt')
+        }
+        try {
           data = JSON.parse(data)
           if (!data) return reject(new Error('Nothing returned'))
           if (data.message) return reject(data.message)
