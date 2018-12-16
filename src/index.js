@@ -3,7 +3,7 @@ import Metalsmith from 'metalsmith'
 import markdown from 'metalsmith-markdown'
 import template from 'metalsmith-react-tpl'
 import getDataSource from './getDataSource'
-import assets from 'metalsmith-assets'
+import assets from 'metalsmith-assets-improved'
 import getPrismicContent from './getPrismicContent'
 import singleFileOnly from './singleFileOnly'
 import webpackPages from './webpackPages'
@@ -46,8 +46,8 @@ const MetalSmithLoader = (opts) => {
     }))
     .destination(opts.destination)
     .use(assets({
-      source: './' + opts.assets,
-      destination: './'
+      src: './' + opts.assets,
+      dest: './'
     }))
     .use(webpackPages({
       directory: opts.templateDir,

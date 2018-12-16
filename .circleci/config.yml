@@ -15,7 +15,7 @@ references:
 defaults: &defaults
   working_directory: *workspace_root
   docker:
-    - image: circleci/node:8.11.3
+    - image: circleci/node:10.14.0
 
 jobs:
   initialise:
@@ -60,6 +60,17 @@ jobs:
       # Restore dependencies from cache
       - *restore_workspace
       - run: npm run ci
+  deploy:
+    <<: *defaults
+    steps:
+      - *restore_workspace
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN" > ~/static-site-generator/.npmrc
+      - run:
+          name: Publish package
+          command: npm publish
+      
 
 
 workflows:
@@ -70,3 +81,9 @@ workflows:
       - test:
           requires:
             - initialise
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
