@@ -74,7 +74,18 @@ const webpackPages = (globalOptions) => {
     const finishAll = () => {
       globalOptions.webpack.entry = outputFiles
       metalsmith.webpack = globalOptions.webpack
-      webpack(globalOptions.webpack, err => {
+      webpack(globalOptions.webpack, (err, stats) => {
+        if (err) {
+          console.log(err.stack || err)
+          if (err.details) {
+            console.log(err.details)
+          }
+          return done(err)
+        }
+        const info = stats.toJson()
+        if (stats.hasErrors()) {
+          console.log(info.errors)
+        }
         if (!globalOptions.webpack.devServer) {
           rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
         }
