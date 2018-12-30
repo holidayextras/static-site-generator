@@ -18,9 +18,9 @@ const webpackPages = (globalOptions) => {
     const generateOutput = (template, props, options) => {
       const method = props.dataSource && props.dataSource.hydrate ? 'hydrate' : 'render'
       if (props.dataSource && props.dataSource.store) {
-        props.store = ''
+        props.store = props.dataSource.baseFolder || ''
         if (props.pagename && !props.dataSource.store.includes('../')) {
-          props.store = props.pagename.split('/').map(i => '../').join('')
+          props.store += props.pagename.split('/').map(i => '../').join('')
         }
         props.store += props.dataSource.store
       }
