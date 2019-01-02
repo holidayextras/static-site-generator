@@ -10,7 +10,8 @@ let outputFiles = { }
 const webpackPages = (globalOptions) => {
   /* Return to metalsmith */
   return (files, metalsmith, done) => {
-    if (!(globalOptions.webpack && globalOptions.dest && globalOptions.directory)) return done()
+    done()
+    if (!(globalOptions.webpack && globalOptions.dest && globalOptions.directory)) return
 
     globalOptions.tempDir = path.join(metalsmith._directory, '_tempOutput')
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
@@ -80,7 +81,7 @@ const webpackPages = (globalOptions) => {
           if (err.details) {
             console.log(err.details)
           }
-          return done(err)
+          throw err
         }
         const info = stats.toJson()
         if (stats.hasErrors()) {
@@ -89,7 +90,6 @@ const webpackPages = (globalOptions) => {
         if (!globalOptions.webpack.devServer) {
           rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
         }
-        done(err)
       })
     }
 

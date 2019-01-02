@@ -16,6 +16,9 @@ const getHXSEOContent = (opts) => {
       params.dataSource.repeater = 'data'
       params.dataSource.pageDataField = 'attributes'
       params.dataSource.pageNameField = 'pageName'
+      if (process.env.singlePage) {
+        params.dataSource.query += `&filter[pageName]=${process.env.singlePage}`
+      }
       return params
     }
     const postQuery = (files[Object.keys(files)[0]] && files[Object.keys(files)[0]].hxseo && files[Object.keys(files)[0]].hxseo.postQuery) || false
