@@ -53,7 +53,8 @@ const MetalSmithLoader = (opts) => {
       directory: opts.templateDir,
       noConflict: false,
       dest: opts.destination + '/js',
-      webpack: require(path.join(opts.src, opts.webpack))
+      webpack: require(path.join(opts.src, opts.webpack)),
+      callback: opts.callback
     }))
 
   if (opts.devMode) {
@@ -65,8 +66,8 @@ const MetalSmithLoader = (opts) => {
   }
 
   metalSmith.build(function (err) {
+    if (err && opts.callback) return opts.callback(err)
     if (err) throw err
-    if (opts.callback) opts.callback()
   })
 }
 

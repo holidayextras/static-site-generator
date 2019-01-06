@@ -81,6 +81,7 @@ const webpackPages = (globalOptions) => {
           if (err.details) {
             console.log(err.details)
           }
+          if (globalOptions.callback) return globalOptions.callback(err)
           throw err
         }
         const info = stats.toJson()
@@ -90,6 +91,7 @@ const webpackPages = (globalOptions) => {
         if (!globalOptions.webpack.devServer) {
           rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
         }
+        if (globalOptions.callback) globalOptions.callback(null, true)
       })
     }
 
@@ -104,6 +106,7 @@ const webpackPages = (globalOptions) => {
       .all(promises)
       .then(finishAll)
       .catch(function (err) {
+        if (globalOptions.callback) globalOptions.callback(err)
         console.error(err)
       })
   }
