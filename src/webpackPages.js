@@ -91,7 +91,7 @@ const webpackPages = (globalOptions) => {
         if (!globalOptions.webpack.devServer) {
           rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
         }
-        if (globalOptions.callback) globalOptions.callback(null, true)
+        if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
       })
     }
 
