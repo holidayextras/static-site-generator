@@ -95,6 +95,7 @@ const webpackPages = (globalOptions) => {
       })
     }
 
+    outputFiles = { }
     const promises = Object.keys(files).map(function (key) {
       const props = files[key]
       const file = key
