@@ -73,8 +73,8 @@ const webpackPages = (globalOptions) => {
     }
 
     const finishAll = () => {
+      if (typeof globalOptions.webpack === 'function') globalOptions.webpack = globalOptions.webpack(globalOptions)
       globalOptions.webpack.entry = outputFiles
-      metalsmith.webpack = globalOptions.webpack
       webpack(globalOptions.webpack, (err, stats) => {
         if (err) {
           console.log(err.stack || err)

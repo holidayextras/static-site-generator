@@ -51,6 +51,7 @@ const MetalSmithLoader = (opts) => {
     }))
     .use(webpackPages({
       directory: opts.templateDir,
+      options: opts.webpackOptions,
       noConflict: false,
       dest: opts.destination + '/js',
       webpack: require(path.join(opts.src, opts.webpack)),
