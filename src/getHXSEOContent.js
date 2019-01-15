@@ -2,7 +2,8 @@ import _ from 'underscore'
 import path from 'path'
 import PageData from './components/pageData'
 
-const getHXSEOContent = (opts) => {
+const getHXSEOContent = (coreParams) => {
+  const opts = Object.assign({ }, coreParams);
   return (files, metalsmith, done) => {
     if (!opts.token) throw (new Error('Must provide a token for SEO api access'))
     opts.token = {
