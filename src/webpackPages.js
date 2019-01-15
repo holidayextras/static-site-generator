@@ -88,9 +88,7 @@ const webpackPages = (globalOptions) => {
         if (stats.hasErrors()) {
           console.log(info.errors)
         }
-        if (!globalOptions.webpack.devServer) {
-          rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
-        }
+        rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
         if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
       })
     }

@@ -7,7 +7,6 @@ import assets from 'metalsmith-assets-improved'
 import getPrismicContent from './getPrismicContent'
 import singleFileOnly from './singleFileOnly'
 import webpackPages from './webpackPages'
-import webpackDevServer from './webpackDevServer'
 
 const MetalSmithLoader = (opts) => {
   let isStatic = true
@@ -57,10 +56,6 @@ const MetalSmithLoader = (opts) => {
       webpack: require(path.join(opts.src, opts.webpack)),
       callback: opts.callback
     }))
-
-  if (opts.devMode) {
-    metalSmith.use(webpackDevServer(opts.devMode))
-  }
 
   if (opts.markDownSource) {
     metalSmith.source(opts.markDownSource)
