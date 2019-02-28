@@ -160,7 +160,7 @@ const PageData = class PageData {
     query = query.split(selector).slice(0, 1)
     let newQuery = ''
     pageList.filter(page => {
-      return page === process.env.singlePage
+      return page.split('&')[0] === process.env.singlePage
     }).map(page => {
       newQuery += selector + page
     })
