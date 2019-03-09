@@ -138,6 +138,7 @@ const PageData = class PageData {
   prepareRequest (fileParams) {
     const { opts } = this.params
     const request = {
+      timeout: 10000,
       host: fileParams.dataSource.host,
       port: fileParams.dataSource.port || '443',
       headers: {
