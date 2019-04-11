@@ -15,7 +15,7 @@ references:
 defaults: &defaults
   working_directory: *workspace_root
   docker:
-    - image: circleci/node:8.11.3
+    - image: circleci/node:10.14.0
 
 jobs:
   initialise:
@@ -70,7 +70,6 @@ jobs:
       - run:
           name: Publish package
           command: npm publish
-
 
 workflows:
   version: 2
