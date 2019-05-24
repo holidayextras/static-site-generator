@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "npm run trans",
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "trans": "node_modules/.bin/babel src/ -d lib/",
     "lint": "standard src/**/* src/* --fix",
     "ci": "npm run lint"
