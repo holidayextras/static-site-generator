@@ -74,6 +74,12 @@ const webpackPages = (globalOptions) => {
 
     const finishAll = () => {
       if (typeof globalOptions.webpack === 'function') globalOptions.webpack = globalOptions.webpack(globalOptions)
+      if (!outputFiles || Object.keys(outputFiles).length < 1) {
+        rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
+        const webpackError = 'No outputFiles for webpack'
+        console.log(webpackError)
+        if (globalOptions.callback) return globalOptions.callback(new Error(webpackError))
+      }
       globalOptions.webpack.entry = outputFiles
       webpack(globalOptions.webpack, (err, stats) => {
         if (err) {
