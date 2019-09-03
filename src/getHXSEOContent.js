@@ -36,7 +36,7 @@ const getHXSEOContent = (coreParams) => {
       }
       return params
     }
-    const postQuery = (cachedFiles[Object.keys(cachedFiles)[0]] && cachedFiles[Object.keys(cachedFiles)[0]].hxseo && cachedFiles[Object.keys(cachedFiles)[0]].hxseo.postQuery) || false
+    const postQuery = (cachedFiles[Object.keys(cachedFiles)[0]] && cachedFiles[Object.keys(cachedFiles)[0]].hxseo && cachedFiles[Object.keys(cachedFiles)[0]].hxseo.postQuery) || opts.postBuild || false
     new PageData({
       opts,
       files: cachedFiles
