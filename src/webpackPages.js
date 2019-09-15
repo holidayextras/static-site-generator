@@ -26,7 +26,7 @@ const webpackPages = (globalOptions) => {
         props.store += props.dataSource.store
       }
       const templateGroups = metalsmith._directory.split('/templates')
-      const templateGroup = (templateGroups.length > 0) ? '/templates' + templateGroups[1] : ''
+      const templateGroup = templateGroups.length > 1 ? '/templates' + templateGroups[1] : (props.group || '')
       let output = `var React = require( 'react' );
                     var ReactDOM = require( 'react-dom' );
                     var Element = require( '${template}' );
