@@ -1,16 +1,17 @@
 {
+  "sourceType": "unambiguous",
   "presets": [
-    "react",
-    ["env", {
-      "target": {
+    "@babel/preset-react",
+    ["@babel/preset-env", {
+      "targets": {
         "browsers": [
-          "not ie <= 8",
+          "ie >= 9",
           "last 2 iOS major versions",
           "last 2 Firefox major versions",
           "last 2 Safari major versions",
-          "> 10% in UK"
+          "last 2 Chrome major versions"
         ]
-      } 
-    }] 
+      }
+    }]
   ]
 }

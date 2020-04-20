@@ -1,6 +1,5 @@
 import http from 'http'
 import https from 'https'
-import clone from 'clone'
 import pageNameChanger from './pageNameChanger'
 import pageNameSanitiser from './pageNameSanitiser'
 
@@ -26,7 +25,7 @@ const PageData = class PageData {
       }
     }
     for (let i = 0; i < data.length; i++) {
-      let newFile = extraFiles ? { } : clone(this.params.files[ fileName ])
+      let newFile = extraFiles ? { } : JSON.parse(JSON.stringify(this.params.files[ fileName ]))
       let folder = fileName.split('/')
       folder = (folder && folder.length > 1) ? folder.slice(0, -1).join('/') + '/' : ''
 
