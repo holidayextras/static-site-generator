@@ -9,6 +9,7 @@ import singleFileOnly from './singleFileOnly'
 import webpackPages from './webpackPages'
 
 const MetalSmithLoader = (opts) => {
+  console.log('metalsmith===>')
   let isStatic = true
   if (!opts.src) throw new Error('No src param provided for the .md file directory')
   if (!opts.dataSource) throw new Error('No dataSource param provided for the content endpoint')
@@ -62,7 +63,7 @@ const MetalSmithLoader = (opts) => {
   }
 
   metalSmith.build(function (err) {
-    console.log('build callback')
+    console.log('metalsmith===>build callback')
     if (err && opts.callback) return opts.callback(err)
     if (err) throw err
   })
