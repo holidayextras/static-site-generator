@@ -73,8 +73,10 @@ const webpackPages = (globalOptions) => {
     }
 
     const finishAll = () => {
+      console.log('finishAll function')
       if (typeof globalOptions.webpack === 'function') globalOptions.webpack = globalOptions.webpack(globalOptions)
       if (!outputFiles || Object.keys(outputFiles).length < 1) {
+        console.log('no output files')
         rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
         const webpackError = 'No outputFiles for webpack'
         console.log(webpackError)
