@@ -102,6 +102,7 @@ const webpackPages = (globalOptions) => {
         if (stats.hasErrors()) {
           console.log('stats has errors')
           console.log(info.errors)
+          throw new Error('Error building page')
         }
         console.log('everything was fine????')
         rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
