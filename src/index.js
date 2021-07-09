@@ -62,6 +62,7 @@ const MetalSmithLoader = (opts) => {
   }
 
   metalSmith.build(function (err) {
+    console.log('build callback')
     if (err && opts.callback) return opts.callback(err)
     if (err) throw err
   })
