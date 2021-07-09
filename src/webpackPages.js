@@ -9,8 +9,10 @@ let outputFiles = { }
 
 const webpackPages = (globalOptions) => {
   /* Return to metalsmith */
+  console.log('metalsmith1')
   return (files, metalsmith, done) => {
     done()
+    console.log('metalsmith2')
     if (!(globalOptions.webpack && globalOptions.dest && globalOptions.directory)) return
 
     globalOptions.tempDir = path.join(metalsmith._directory, '_tempOutput')
