@@ -93,7 +93,9 @@ const webpackPages = (globalOptions) => {
       .all(promises)
       .then(finishAll)
       .catch(function (err) {
+        console.log('caught an error-----')
         console.error(err)
+        throw err
       })
   }
 }
