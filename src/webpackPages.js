@@ -99,6 +99,7 @@ const webpackPages = (globalOptions) => {
           console.log('stats has errors')
           console.log(info.errors)
         }
+        console.log('everything was fine????')
         rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
         if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
       })
