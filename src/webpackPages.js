@@ -83,11 +83,15 @@ const webpackPages = (globalOptions) => {
       globalOptions.webpack.entry = outputFiles
       webpack(globalOptions.webpack, (err, stats) => {
         if (err) {
+          console.log('error in webpack script')
           console.log(err.stack || err)
           if (err.details) {
             console.log(err.details)
           }
-          if (globalOptions.callback) return globalOptions.callback(err)
+          if (globalOptions.callback) {
+            console.log('has callback option')
+            return globalOptions.callback(err)
+          }
           throw err
         }
         const info = stats.toJson()
@@ -111,6 +115,7 @@ const webpackPages = (globalOptions) => {
       .all(promises)
       .then(finishAll)
       .catch(function (err) {
+        console.log('do i get here with an error?')
         if (globalOptions.callback) globalOptions.callback(err)
         console.error(err)
       })
