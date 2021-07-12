@@ -93,6 +93,7 @@ const webpackPages = (globalOptions) => {
         const info = stats.toJson()
         if (stats.hasErrors()) {
           console.log(info.errors)
+          globalOptions.callback(new Error(info.errors[0]))
         }
         rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
         if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
