@@ -27,7 +27,7 @@ const MetalSmithLoader = (opts) => {
     .clean(opts.clean)
     .metadata(opts.config || { })
     .use(dataSource)
-    .use(singleFileOnly())
+    .use(singleFileOnly(opts))
 
   if (opts.dataSource && opts.dataSource.type === 'prismic') {
     metalSmith.use(getPrismicContent())
