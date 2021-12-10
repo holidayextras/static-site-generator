@@ -1,6 +1,7 @@
 import prismic from './metalsmith-prismic'
 import hxseo from './getHXSEOContent'
 import apiCaller from './apiCaller'
+import _ from 'lodash'
 
 const getDataSource = (opts) => {
   if (!opts.dataSource) return false
@@ -15,6 +16,12 @@ const getDataSource = (opts) => {
       'accessToken': opts.dataSource.accessToken,
       'linkResolver': configLinkResolver || function (ctx, doc) {
         if (doc.isBroken) return ''
+        if (_.has(doc, 'data.slug.json.value')) { // Node >= 14 - can use instead use: (doc?.data?.slug?.json?.hasOwnProperty('value'))
+          const regExpDomain = new RegExp(`.*${opts.config.domainSettings.domainLive}`)
+          // Strip domain (+ everything before it) off of the slug in case it was added by mistake
+          const slug = doc.data.slug.json.value
+          return slug.replace(regExpDomain, '')
+        }
         return '/' + doc.uid
       }
     })
