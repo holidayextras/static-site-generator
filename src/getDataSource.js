@@ -16,7 +16,7 @@ const getDataSource = (opts) => {
       'accessToken': opts.dataSource.accessToken,
       'linkResolver': configLinkResolver || function (ctx, doc) {
         if (doc.isBroken) return ''
-        if (_.has(doc, 'data.slug.json.value')) { // Node >= 14 - can use instead use: (doc?.data?.slug?.json?.hasOwnProperty('value'))
+        if (_.has(doc, 'data.slug.json.value')) {
           const regExpDomain = new RegExp(`.*${opts.config.domainSettings.domainLive}`)
           // Strip domain (+ everything before it) off of the slug in case it was added by mistake
           const slug = doc.data.slug.json.value
