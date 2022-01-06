@@ -3,10 +3,9 @@ const singleFileOnly = (opts) => {
     if (!process.env.srcFile && !process.env.singlePage) return done()
     if (process.env.singlePage) {
       Object.keys(files).map(fileName => {
-        if (files[fileName].folderPrefix && fileName !== 'index') {
-          fileName = files[fileName].folderPrefix + fileName
-        }
-        if (fileName !== process.env.singlePage + '.html') delete files[fileName]
+        const pagePrefix = opts.webpackOptions.folderPrefix ? opts.webpackOptions.folderPrefix.replace(/^\//, '') + '/' : ''
+        const singlePage = pagePrefix + process.env.singlePage + '.html'
+        if (fileName !== singlePage) delete files[fileName]
         return fileName
       })
       return done()
