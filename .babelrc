@@ -13,5 +13,8 @@
         ]
       }
     }]
-  ]
+  ],
+  "options": {
+    "plugins": ["@babel/plugin-proposal-optional-chaining"]
+  }
 }
