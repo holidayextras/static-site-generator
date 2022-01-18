@@ -3,7 +3,7 @@ import path from 'path'
 
 const apiCaller = (opts) => {
   return (files, metalsmith, done) => {
-    const postQuery = (opts.url && opts.url.postBuild) || false
+    const postQuery = opts?.url?.postBuild || false
     new PageData({
       opts,
       files
