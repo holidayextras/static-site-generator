@@ -47,7 +47,7 @@ const webpackPages = (globalOptions) => {
 
       const destFilename = options.destFilename
       const filename = path.join(options.tempDir, destFilename)
-      outputFiles[ destFilename.replace('.js', '') ] = filename
+      outputFiles[destFilename.replace('.js', '')] = filename
 
       return new Promise((resolve, reject) => {
         mkdirp(path.dirname(filename), error => {
@@ -63,11 +63,11 @@ const webpackPages = (globalOptions) => {
     const iterator = (prop, file) => {
       const props = _.extend({ }, prop, metalsmith._metadata)
       props.tpl = (globalOptions.noConflict) ? 'rtemplate' : 'template'
-      if (!props[ props.tpl ]) return false
+      if (!props[props.tpl]) return false
       delete props.contents
       delete props.stats
       delete props.mode
-      const template = path.join(metalsmith._directory, globalOptions.directory, props[ props.tpl ])
+      const template = path.join(metalsmith._directory, globalOptions.directory, props[props.tpl])
       globalOptions.destFilename = file.replace(path.extname(file), '') + '.js'
       return generateOutput(template, props, globalOptions)
     }

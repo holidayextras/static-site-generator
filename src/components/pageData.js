@@ -16,7 +16,7 @@ const PageData = class PageData {
   extractData (data, fileName, fileParams) {
     const { extraFiles, dataSource = { } } = fileParams
     const { repeater, pageDataField, pageNameField } = dataSource
-    const newFiles = [ ]
+    const newFiles = []
     if (repeater) data = data[repeater]
     if (!data || !data.length) {
       return {
@@ -25,7 +25,7 @@ const PageData = class PageData {
       }
     }
     for (let i = 0; i < data.length; i++) {
-      let newFile = extraFiles ? { } : JSON.parse(JSON.stringify(this.params.files[ fileName ]))
+      let newFile = extraFiles ? { } : JSON.parse(JSON.stringify(this.params.files[fileName]))
       let folder = fileName.split('/')
       folder = (folder && folder.length > 1) ? folder.slice(0, -1).join('/') + '/' : ''
 
@@ -42,7 +42,7 @@ const PageData = class PageData {
 
       // Create the new page in metalsmith
       newFile.srcFile = fileName
-      if (!extraFiles) this.params.files[ newFile.pageName ] = newFile
+      if (!extraFiles) this.params.files[newFile.pageName] = newFile
       data[i] = newFile
       newFiles.push({
         data: newFile,
@@ -90,7 +90,7 @@ const PageData = class PageData {
       requestMethod.get(request, res => {
         this.getDataForPage(res, fileName, fileParams).then(fileData => {
           // Remove the markdown file from metalsmith as its not an actual page
-          delete this.params.files[ fileName ]
+          delete this.params.files[fileName]
           if (fileData.response) return resolve(fileData.response)
           return reject(new Error('No response found'))
         }).catch(reject)
@@ -103,10 +103,9 @@ const PageData = class PageData {
     // This can be prodlib data based on an SEO object
     if (!fileParams.dataSource.extras) return callBack()
     const loop = fileParams.dataSource.extras
-    return Object.keys(loop).map(opt => {
-      if (!loop[ opt ].query) return
-      loop[ opt ].extraFiles = true
-      const option = loop[ opt ].query.match(/<%([^%].*)%>/)
+    return Object.keys(loop).filter(opt => loop[opt].query).map(opt => {
+      loop[opt].extraFiles = true
+      const option = loop[opt].query.match(/<%([^%].*)%>/)
       const extraPageData = data.map(currentFile => {
         return new Promise((resolve, reject) => {
           if (!currentFile.data.pageData[option[1]]) {
@@ -116,14 +115,14 @@ const PageData = class PageData {
             return delete this.params.files[currentFile.key]
           }
           const value = currentFile.data.pageData[option[1]]
-          fileParams = Object.assign({}, loop[ opt ])
+          fileParams = Object.assign({}, loop[opt])
           fileParams.query = fileParams.query.replace(option[0], value)
           fileParams.dataSource = fileParams // Needs to double up for functions
           const request = this.prepareRequest(fileParams)
           const requestMethod = request.port === '443' ? https : http
           return requestMethod.get(request, res => {
             this.getDataForPage(res, currentFile.key, fileParams).then(newFiles => {
-              this.params.files[ currentFile.key ][ opt ] = newFiles.data
+              this.params.files[currentFile.key][opt] = newFiles.data
               resolve()
             }).catch(reject)
           })
@@ -162,7 +161,7 @@ const PageData = class PageData {
     let newQuery = ''
     pageList.filter(page => {
       return page.split('&')[0] === process.env.singlePage
-    }).map(page => {
+    }).forEach(page => {
       newQuery += selector + page
     })
     return newQuery !== '' ? query + newQuery : false

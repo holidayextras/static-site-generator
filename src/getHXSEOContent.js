@@ -6,7 +6,7 @@ const getHXSEOContent = (coreParams) => {
   const opts = Object.assign({ }, coreParams)
   return (files, metalsmith, done) => {
     if (!opts.token) throw (new Error('Must provide a token for SEO api access'))
-    var newDone = function (data) {
+    const newDone = function (data) {
       Object.keys(files).forEach(file => {
         delete files[file]
       })
