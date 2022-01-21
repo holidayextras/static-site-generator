@@ -13,7 +13,7 @@
     "trans": "src"
   },
   "scripts": {
-    "build": "npm run trans",
+    "build": "echo $npm_config_node_version && npm run trans",
     "prepublishOnly": "npm run build",
     "trans": "node_modules/.bin/babel src/ -d lib/",
     "lint": "standard src/**/* src/* --fix",

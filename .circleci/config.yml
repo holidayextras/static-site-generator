@@ -52,7 +52,8 @@ jobs:
             - ./node_modules/
       - run:
           name: Run build
-          command: npm run build
+          command: 
+            npm run build
       - *save_workspace
   test:
     <<: *defaults
