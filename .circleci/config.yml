@@ -15,7 +15,7 @@ references:
 defaults: &defaults
   working_directory: *workspace_root
   docker:
-    - image: circleci/node:10.14.0
+    - image: circleci/node:14.17.2
 
 jobs:
   initialise:
