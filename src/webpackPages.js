@@ -10,7 +10,8 @@ let outputFiles = { }
 const webpackPages = (globalOptions) => {
   /* Return to metalsmith */
   return (files, metalsmith, done) => {
-    if (!(globalOptions.webpack && globalOptions.dest && globalOptions.directory)) return done()
+    done()
+    if (!(globalOptions.webpack && globalOptions.dest && globalOptions.directory)) return
 
     globalOptions.tempDir = path.join(metalsmith._directory, '_tempOutput')
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
@@ -18,14 +19,14 @@ const webpackPages = (globalOptions) => {
     const generateOutput = (template, props, options) => {
       const method = props.dataSource && props.dataSource.hydrate ? 'hydrate' : 'render'
       if (props.dataSource && props.dataSource.store) {
-        props.store = ''
+        props.store = props.dataSource.baseFolder || ''
         if (props.pagename && !props.dataSource.store.includes('../')) {
-          props.store = props.pagename.split('/').map(i => '../').join('')
+          props.store += props.pagename.split('/').map(i => '../').join('')
         }
         props.store += props.dataSource.store
       }
       const templateGroups = metalsmith._directory.split('/templates')
-      const templateGroup = (templateGroups.length > 0) ? '/templates' + templateGroups[1] : ''
+      const templateGroup = templateGroups.length > 1 ? '/templates' + templateGroups[1] : (props.group || '')
       let output = `var React = require( 'react' );
                     var ReactDOM = require( 'react-dom' );
                     var Element = require( '${template}' );
@@ -46,7 +47,7 @@ const webpackPages = (globalOptions) => {
 
       const destFilename = options.destFilename
       const filename = path.join(options.tempDir, destFilename)
-      outputFiles[ destFilename.replace('.js', '') ] = filename
+      outputFiles[destFilename.replace('.js', '')] = filename
 
       return new Promise((resolve, reject) => {
         mkdirp(path.dirname(filename), error => {
@@ -62,26 +63,44 @@ const webpackPages = (globalOptions) => {
     const iterator = (prop, file) => {
       const props = _.extend({ }, prop, metalsmith._metadata)
       props.tpl = (globalOptions.noConflict) ? 'rtemplate' : 'template'
-      if (!props[ props.tpl ]) return false
+      if (!props[props.tpl]) return false
       delete props.contents
       delete props.stats
       delete props.mode
-      const template = path.join(metalsmith._directory, globalOptions.directory, props[ props.tpl ])
+      const template = path.join(metalsmith._directory, globalOptions.directory, props[props.tpl])
       globalOptions.destFilename = file.replace(path.extname(file), '') + '.js'
       return generateOutput(template, props, globalOptions)
     }
 
     const finishAll = () => {
+      if (typeof globalOptions.webpack === 'function') globalOptions.webpack = globalOptions.webpack(globalOptions)
+      if (!outputFiles || Object.keys(outputFiles).length < 1) {
+        rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
+        const webpackError = 'No outputFiles for webpack'
+        console.log(webpackError)
+        if (globalOptions.callback) return globalOptions.callback(new Error(webpackError))
+      }
       globalOptions.webpack.entry = outputFiles
-      metalsmith.webpack = globalOptions.webpack
-      webpack(globalOptions.webpack, err => {
-        if (!globalOptions.webpack.devServer) {
-          rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
+      webpack(globalOptions.webpack, (err, stats) => {
+        if (err) {
+          console.log(err.stack || err)
+          if (err.details) {
+            console.log(err.details)
+          }
+          if (globalOptions.callback) return globalOptions.callback(err)
+          throw err
         }
-        done(err)
+        const info = stats.toJson()
+        if (stats.hasErrors()) {
+          console.log(info.errors)
+          globalOptions.callback(new Error(info.errors[0]))
+        }
+        rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
+        if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
       })
     }
 
+    outputFiles = { }
     const promises = Object.keys(files).map(function (key) {
       const props = files[key]
       const file = key
@@ -93,6 +112,7 @@ const webpackPages = (globalOptions) => {
       .all(promises)
       .then(finishAll)
       .catch(function (err) {
+        if (globalOptions.callback) globalOptions.callback(err)
         console.error(err)
       })
   }

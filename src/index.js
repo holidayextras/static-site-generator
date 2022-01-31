@@ -3,11 +3,10 @@ import Metalsmith from 'metalsmith'
 import markdown from 'metalsmith-markdown'
 import template from 'metalsmith-react-tpl'
 import getDataSource from './getDataSource'
-import assets from 'metalsmith-assets'
+import assets from 'metalsmith-assets-improved'
 import getPrismicContent from './getPrismicContent'
 import singleFileOnly from './singleFileOnly'
 import webpackPages from './webpackPages'
-import webpackDevServer from './webpackDevServer'
 
 const MetalSmithLoader = (opts) => {
   let isStatic = true
@@ -28,7 +27,7 @@ const MetalSmithLoader = (opts) => {
     .clean(opts.clean)
     .metadata(opts.config || { })
     .use(dataSource)
-    .use(singleFileOnly())
+    .use(singleFileOnly(opts))
 
   if (opts.dataSource && opts.dataSource.type === 'prismic') {
     metalSmith.use(getPrismicContent())
@@ -46,27 +45,25 @@ const MetalSmithLoader = (opts) => {
     }))
     .destination(opts.destination)
     .use(assets({
-      source: './' + opts.assets,
-      destination: './'
+      src: './' + opts.assets,
+      dest: './'
     }))
     .use(webpackPages({
       directory: opts.templateDir,
+      options: opts.webpackOptions,
       noConflict: false,
       dest: opts.destination + '/js',
-      webpack: require(path.join(opts.src, opts.webpack))
+      webpack: require(path.join(opts.src, opts.webpack)),
+      callback: opts.callback
     }))
-
-  if (opts.devMode) {
-    metalSmith.use(webpackDevServer(opts.devMode))
-  }
 
   if (opts.markDownSource) {
     metalSmith.source(opts.markDownSource)
   }
 
   metalSmith.build(function (err) {
+    if (err && opts.callback) return opts.callback(err)
     if (err) throw err
-    if (opts.callback) opts.callback()
   })
 }
 
