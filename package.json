@@ -27,7 +27,7 @@
   "dependencies": {
     "async": "^1.5.2",
     "meta-marked": "^0.4.0",
-    "metalsmith": "^2.3.0",
+    "metalsmith": "~2.3.0",
     "metalsmith-assets-improved": "^1.0.0",
     "metalsmith-markdown": "^1.1.0",
     "metalsmith-react-tpl": "^3.0.1",
