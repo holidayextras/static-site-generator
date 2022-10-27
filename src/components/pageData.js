@@ -70,6 +70,7 @@ const PageData = class PageData {
           console.log(e, 'Can\'t convert charCodeAt')
         }
         try {
+          console.log('data===>', data)
           data = JSON.parse(data)
           if (!data) return reject(new Error('Nothing returned'))
           if (data.message) return reject(data.message)
