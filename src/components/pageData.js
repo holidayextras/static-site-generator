@@ -102,6 +102,7 @@ const PageData = class PageData {
   makeExtraAPICalls (data, fileParams, callBack) {
     // Now check for additional requests per page returned from API call
     // This can be prodlib data based on an SEO object
+    console.log('making extra calls')
     if (!fileParams.dataSource.extras) return callBack()
     const loop = fileParams.dataSource.extras
     return Object.keys(loop).filter(opt => loop[opt].query).map(opt => {
@@ -129,7 +130,9 @@ const PageData = class PageData {
           })
         })
       })
+      console.log('here1?')
       Promise.all(extraPageData).then(callBack).catch(callBack)
+      console.log('here12')
       return opt
     })
   }
@@ -181,6 +184,7 @@ const PageData = class PageData {
           return resolve()
         }
         return this.callAPI(fileName, fileParams).then(data => {
+          console.log('got result from api')
           this.makeExtraAPICalls(data, fileParams, resolve)
         }).catch(reject)
       })
