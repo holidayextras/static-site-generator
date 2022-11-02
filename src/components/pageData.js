@@ -70,7 +70,7 @@ const PageData = class PageData {
           console.log(e, 'Can\'t convert charCodeAt')
         }
         try {
-          console.log('data===>', data)
+          console.log('data===>!', fileName)
           data = JSON.parse(data)
           if (!data) return reject(new Error('Nothing returned'))
           if (data.message) return reject(data.message)
@@ -122,6 +122,7 @@ const PageData = class PageData {
           fileParams.dataSource = fileParams // Needs to double up for functions
           const request = this.prepareRequest(fileParams)
           const requestMethod = request.port === '443' ? https : http
+          console.log('making request', request)
           return requestMethod.get(request, res => {
             this.getDataForPage(res, currentFile.key, fileParams).then(newFiles => {
               this.params.files[currentFile.key][opt] = newFiles.data
