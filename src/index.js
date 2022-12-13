@@ -30,7 +30,7 @@ const MetalSmithLoader = (opts) => {
     .use(singleFileOnly(opts))
 
   if (opts.dataSource && opts.dataSource.type === 'prismic') {
-    metalSmith.use(getPrismicContent())
+    metalSmith.use(getPrismicContent(opts))
   }
 
   metalSmith
