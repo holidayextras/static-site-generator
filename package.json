@@ -15,10 +15,9 @@
   "scripts": {
     "build": "npm run trans",
     "prepublishOnly": "npm run build",
-    "trans": "babel ./src/ -d ./lib/",
+    "trans": "node_modules/.bin/babel src/ -d lib/",
     "lint": "standard src/**/* src/* --fix",
-    "ci": "npm run lint",
-    "postinstall": "npm run build"
+    "ci": "npm run lint"
   },
   "standard": {
     "ignore": [

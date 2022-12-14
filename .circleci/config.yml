@@ -44,7 +44,7 @@ jobs:
       - run:
           name: Installing Defaults
           command: |
-            if [[ -d "node_modules" ]]; then echo "Skipping"; else npm install; fi
+            if [[ -d "node_modules" ]]; then echo "Skipping"; else echo "installing"; npm install; fi
       - save_cache:
           key: v1-defaults-{{ checksum "package.json" }}
           name: Save Default Modules Cache
