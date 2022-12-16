@@ -1,4 +1,5 @@
-const getPrismicContent = () => {
+const getPrismicContent = (coreParams) => {
+  const opts = Object.assign({ }, coreParams)
   return (files, metalsmith, done) => {
     // Adjusts the pageData from prismic to return the value of the fragment instead of the whole entity
     const getFragmentValues = (fragment, file, data) => {
@@ -25,6 +26,7 @@ const getPrismicContent = () => {
     }
 
     Object.keys(files).forEach(file => {
+      files[file].dataSource = opts.dataSource
       files[file].pageData = files[file].prismic.page.results[0].data
       files[file].pagename = file
       getPrismicData(files[file].pageData, file)
