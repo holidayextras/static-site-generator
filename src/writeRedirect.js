@@ -9,7 +9,9 @@ const writeRedirect = (documentData) => {
   if (!redirectValue || !pageUrl || !redirectValue.includes('https://')) return
 
   try {
-    const redirectCommand = `aws s3 cp s3://$BUCKET/${pageUrl}.html s3://$BUCKET/${pageUrl}.html --website-redirect ${redirectValue} \n`
+    const redirectCommand = `
+aws s3 cp s3://$BUCKET/${pageUrl}.html s3://$BUCKET/${pageUrl}.html --website-redirect ${redirectValue}
+aws s3 cp s3://$BUCKET/${pageUrl} s3://$BUCKET/${pageUrl} --website-redirect ${redirectValue}`
     if (!fs.existsSync('./bin')) fs.mkdirSync('./bin')
     fs.appendFileSync('./bin/redirects.sh', redirectCommand, { mode: 0o755 })
     console.log(`Added redirect for ${pageUrl} to ${redirectValue}`)
