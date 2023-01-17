@@ -1,5 +1,6 @@
 import prismic from './metalsmith-prismic'
 import hxseo from './getHXSEOContent'
+import writeRedirect from './writeRedirect'
 import apiCaller from './apiCaller'
 import _ from 'lodash'
 
@@ -16,12 +17,18 @@ const getDataSource = (opts) => {
       accessToken: opts.dataSource.accessToken,
       linkResolver: configLinkResolver || function (ctx, doc) {
         if (doc.isBroken) return ''
+
+        // create redirect script if needed
+        writeRedirect(doc.data)
+
+        // Page url
         if (_.has(doc, 'data.slug.json.value')) {
           const regExpDomain = new RegExp(`.*${opts.config.domainSettings.domainLive}`)
           // Strip domain (+ everything before it) off of the slug in case it was added by mistake
           const slug = doc.data.slug.json.value
           return slug.replace(regExpDomain, '')
         }
+
         return '/' + doc.uid
       }
     })
