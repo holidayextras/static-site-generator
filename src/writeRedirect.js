@@ -1,5 +1,4 @@
 import fs from 'fs'
-import _ from 'lodash'
 
 const writeRedirect = (documentData) => {
   // Prismic custom field with redirect value
