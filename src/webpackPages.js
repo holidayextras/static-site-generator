@@ -35,15 +35,151 @@ const webpackPages = (globalOptions) => {
                     var props = ${JSON.stringify(props)};
                     window.ReactRootProps = props;
                     window.SSGTemplateGroup = '${templateGroup}';`
-      if (props.store) {
-        output += `var Provider = require( 'react-redux' ).Provider;
-                   var store = require( '${props.store}' );
-                   window.ReactRootProvider = Provider;
-                   window.ReactRootStore = store;
-                   var renderedElement = ReactDOM.${method}( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( 'content' ));`
-      } else {
-        output += `var renderedElement = ReactDOM.${method}( <Element {...props} />, document.getElementById( 'content' ));`
+
+      const providers = [] // functions that take children and wrap in each provider
+
+      const theme = {
+        name: 'holidayextras',
+        fonts: {
+          body: {
+            family: 'Nunito',
+            formats: [
+              {
+                url: 'https://d17s4kc6349e5h.cloudfront.net/holidayextras/assets/fonts/HolidayExtrasSans-Regular.woff',
+                format: 'woff'
+              },
+              {
+                url: 'https://d17s4kc6349e5h.cloudfront.net/holidayextras/assets/fonts/HolidayExtrasSans-Regular.woff2',
+                format: 'woff2'
+              },
+              {
+                url: 'https://d17s4kc6349e5h.cloudfront.net/holidayextras/assets/fonts/HolidayExtrasSans-Regular.ttf',
+                format: 'truetype'
+              }
+            ],
+            weightBold: 800,
+            weightRegular: 400
+          },
+          headers: {
+            family: 'Nunito',
+            weight: 900
+          }
+        },
+        borders: {
+          xl: {
+            width: 2,
+            radius: 12
+          },
+          xs: {
+            width: 1,
+            radius: 8
+          },
+          lrg: {
+            width: 2,
+            radius: 8
+          },
+          sml: {
+            width: 1,
+            radius: 8
+          },
+          xxl: {
+            width: 2,
+            radius: 12
+          },
+          base: {
+            width: 1,
+            radius: 8
+          }
+        },
+        shadows: {
+          xl: {
+            boxShadow: '0px 16px 48px -12px rgba(0, 0, 0, 0.15)'
+          },
+          xs: {
+            boxShadow: '0px 2px 4px -12px rgba(0, 0, 0, 0.15)'
+          },
+          lrg: {
+            boxShadow: '0px 8px 16px -12px rgba(0, 0, 0, 0.15)'
+          },
+          base: {
+            boxShadow: '0px 4px 8px -12px rgba(0, 0, 0, 0.15)'
+          }
+        },
+        palettes: {
+          red: {
+            main: '#FF5F68',
+            muted: '#FFDFE1',
+            active: '#E44B53'
+          },
+          blue: {
+            main: '#3AA6FF',
+            muted: '#D8EDFF',
+            active: '#0082E1'
+          },
+          pink: {
+            main: '#FF6DA2',
+            muted: '#FFE2EC',
+            active: '#D95D8A'
+          },
+          green: {
+            main: '#00B0A6',
+            muted: '#CCEFED',
+            active: '#00968D'
+          },
+          orange: {
+            main: '#FFB55F',
+            muted: '#FFF0DF',
+            active: '#E3A155'
+          },
+          purple: {
+            main: '#925FFF',
+            muted: '#E9DFFF',
+            active: '#794FD4'
+          },
+          primary: {
+            main: '#542E91',
+            muted: '#EEEAF4',
+            active: '#3E226A'
+          },
+          secondary: {
+            main: '#FDD506',
+            muted: '#FEF5B4',
+            active: '#F0C900'
+          },
+          greys: {
+            black: '#232323',
+            grey: '#DBDDDF',
+            greyDark: '#232323',
+            white: '#FFFFFF'
+          }
+        }
       }
+
+      const themes = JSON.stringify(theme)
+
+      if (props.store) {
+        output += `
+                  var Provider = require( 'react-redux' ).Provider;
+                  var store = require( '${props.store}' );
+                  window.ReactRootProvider = Provider;
+                  window.ReactRootStore = store;
+                `
+        providers.push((children) => `<Provider store={ store }>${children}</Provider>`)
+      }
+
+      if (props.dataSource?.compLibEnabled) {
+        output += `
+          var ComponentProvider = require( '@holidayextras/component-library' ).ComponentProvider;
+        `
+        providers.push((children) => `<ComponentProvider theme={ ${themes} }>${children}</ComponentProvider>`)
+      }
+
+      let componentString = '<Element {...props} />'
+      providers.forEach((provider) => {
+        componentString = provider(componentString)
+      })
+
+      output += `var renderedElement = ReactDOM.${method}(${componentString}, document.getElementById( 'content' ))`
 
       const destFilename = options.destFilename
       const filename = path.join(options.tempDir, destFilename)
