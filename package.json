@@ -25,6 +25,7 @@
     ]
   },
   "dependencies": {
+    "@holidayextras/component-library": "github:holidayextras/component-library#v0.1.8",
     "async": "^1.5.2",
     "lodash": "^4.17.21",
     "meta-marked": "^0.4.0",
