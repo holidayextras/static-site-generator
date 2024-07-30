@@ -133,4 +133,3 @@ dataSource:
   pageNameField: 'html_url'
   postPageNameChange: 'strip'
 ```
-
