@@ -101,7 +101,10 @@ const webpackPages = (globalOptions) => {
     }
 
     outputFiles = { }
-    const promises = Object.keys(files).map(function (key) {
+    const promises = Object.keys(files)
+      // Filter out files that have a trailing slash. (will become something like "/foobarbaz/.html", which can't be build)
+      .filter(file => !/\/.html$/.test(file))
+      .map(function (key) {
       const props = files[key]
       const file = key
       return iterator(props, file)
