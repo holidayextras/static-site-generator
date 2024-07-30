@@ -17,9 +17,7 @@
     "prepublishOnly": "npm run build",
     "trans": "node_modules/.bin/babel src/ -d lib/",
     "lint": "standard src/**/* src/* --fix",
-    "ci": "npm run lint",
-    "test": "echo 'No tests'",
-    "deploy": "echo 'No deploy'"
+    "test": "npm run lint"
   },
   "standard": {
     "ignore": [
