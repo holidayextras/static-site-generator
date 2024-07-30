@@ -1,6 +1,6 @@
 # Static Site Generator
 
-This is using metalsmith and react to create a static site given params.
+This is using Metalsmith and React to create a static site given params.
 
 ```
 git clone git@github.com:holidayextras/static-site-generator.git
