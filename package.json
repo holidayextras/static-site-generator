@@ -17,7 +17,9 @@
     "prepublishOnly": "npm run build",
     "trans": "node_modules/.bin/babel src/ -d lib/",
     "lint": "standard src/**/* src/* --fix",
-    "ci": "npm run lint"
+    "ci": "npm run lint",
+    "test": "echo 'No tests'",
+    "deploy": "echo 'No deploy'"
   },
   "standard": {
     "ignore": [
@@ -50,5 +52,8 @@
     "standard": "^16.0.4",
     "webpack": "^4.23.1",
     "webpack-cli": "^3.1.0"
-  }
+  },
+  "platform": "custom",
+  "ci": "dockyard",
+  "owner": "audience"
 }
