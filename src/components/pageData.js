@@ -42,6 +42,11 @@ const PageData = class PageData {
 
       // Create the new page in metalsmith
       newFile.srcFile = fileName
+      // Filter out files that have a trailing slash. (will become something like "/foobarbaz/.html", which can't be build)
+      if (/\/.html$/.test(newFile.pageName)) {
+        console.log(`Page ${newFile.pageName} has a trailing slash and cannot be built`)
+        continue
+      }
       if (!extraFiles) this.params.files[newFile.pageName] = newFile
       data[i] = newFile
       newFiles.push({
