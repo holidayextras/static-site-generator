@@ -1,10 +1,10 @@
 {
   "name": "@holidayextras/static-site-generator",
-  "version": "9.2.2",
+  "version": "9.2.3",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",
-    "url": "https://github.com/holidayextras/static-site-generator.git"
+    "url": "git+https://github.com/holidayextras/static-site-generator.git"
   },
   "author": "Richard Stevens <richard.stevens@holidayextras.com",
   "license": "MIT",
@@ -15,7 +15,7 @@
   "scripts": {
     "build": "npm run trans",
     "prepublishOnly": "npm run build",
-    "trans": "node_modules/.bin/babel src/ -d lib/",
+    "trans": "babel src/ -d lib/",
     "lint": "standard src/**/* src/* --fix",
     "test": "npm run lint"
   },
