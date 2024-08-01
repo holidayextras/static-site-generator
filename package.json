@@ -1,6 +1,6 @@
 {
-  "name": "@holidayextras/static-site-generator",
-  "version": "9.2.1",
+  "name": "static-site-generator",
+  "version": "9.2.2",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",
@@ -17,7 +17,8 @@
     "prepublishOnly": "npm run build",
     "trans": "node_modules/.bin/babel src/ -d lib/",
     "lint": "standard src/**/* src/* --fix",
-    "test": "npm run lint"
+    "test": "npm run lint",
+    "postinstall": "npm run trans"
   },
   "standard": {
     "ignore": [
