@@ -14,7 +14,6 @@
   },
   "scripts": {
     "build": "npm run trans",
-    "prepublishOnly": "npm run build",
     "trans": "babel src/ -d lib/",
     "lint": "standard src/**/* src/* --fix",
     "test": "npm run lint"
@@ -51,7 +50,5 @@
     "webpack": "^4.23.1",
     "webpack-cli": "^3.1.0"
   },
-  "platform": "custom",
-  "ci": "dockyard",
   "owner": "audience"
 }

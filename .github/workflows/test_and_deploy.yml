@@ -28,6 +28,6 @@ jobs:
 
       - name: Publish
         if: github.ref == 'refs/heads/master'
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm config set '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
+          npm publish
