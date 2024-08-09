@@ -35,15 +35,32 @@ const webpackPages = (globalOptions) => {
                     var props = ${JSON.stringify(props)};
                     window.ReactRootProps = props;
                     window.SSGTemplateGroup = '${templateGroup}';`
+
+      let providers = [] // functions that take children and wrap in each provider
+
       if (props.store) {
-        output += `var Provider = require( 'react-redux' ).Provider;
-                   var store = require( '${props.store}' );
-                   window.ReactRootProvider = Provider;
-                   window.ReactRootStore = store;
-                   var renderedElement = ReactDOM.${method}( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( 'content' ));`
-      } else {
-        output += `var renderedElement = ReactDOM.${method}( <Element {...props} />, document.getElementById( 'content' ));`
+        output += `
+                  var Provider = require( 'react-redux' ).Provider;
+                  var store = require( '${props.store}' );
+                  window.ReactRootProvider = Provider;
+                  window.ReactRootStore = store;
+                `
+        providers = (children) => `<Provider store={ store }>${children}</Provider>`
       }
+      if (props.compLibEnabled) {
+        output += `
+          var ComponentProvider = require( '@holidayextras/component-library' ).ComponentProvider;
+        `
+        providers = (children) => `<ComponentProvider>${children}</ComponentProvider>`
+      }
+
+      let componentString = '<Element {...props} />'
+
+      providers.forEach((provider) => {
+        componentString = provider(componentString)
+      })
+
+      output += `var renderedElement = ReactDOM.${method}(${componentString}, document.getElementById( 'content' ))`
 
       const destFilename = options.destFilename
       const filename = path.join(options.tempDir, destFilename)
