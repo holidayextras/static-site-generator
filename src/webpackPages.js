@@ -17,7 +17,7 @@ const webpackPages = (globalOptions) => {
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
 
     const generateOutput = (template, props, options) => {
-      const method = props.dataSource && props.dataSource.hydrate ? 'hydrate' : 'render'
+      const method = props.dataSource && props.dataSource.hydrate ? 'hydrateRoot' : 'render'
       if (props.dataSource && props.dataSource.store) {
         props.store = props.dataSource.baseFolder || ''
         if (props.pagename && !props.dataSource.store.includes('../')) {
