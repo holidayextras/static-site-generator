@@ -17,7 +17,7 @@ const webpackPages = (globalOptions) => {
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
 
     const generateOutput = (template, props, options) => {
-      const method = props.dataSource && props.dataSource.hydrate ? 'hydrateRoot' : 'render'
+      const method = props.dataSource && props.dataSource.hydrate ? 'hydrate' : props.dataSource.hydrateRoot ? 'hydrateRoot' : 'render'
       if (props.dataSource && props.dataSource.store) {
         props.store = props.dataSource.baseFolder || ''
         if (props.pagename && !props.dataSource.store.includes('../')) {
@@ -27,6 +27,8 @@ const webpackPages = (globalOptions) => {
       }
       const templateGroups = metalsmith._directory.split('/templates')
       const templateGroup = templateGroups.length > 1 ? '/templates' + templateGroups[1] : (props.group || '')
+      const reactNode = '<Element {...props} />'
+      const domNode = 'document.getElementById( \'content\' )'
       let output = `var React = require( 'react' );
                     var ReactDOM = require( 'react-dom' );
                     var Element = require( '${template}' );
@@ -39,10 +41,19 @@ const webpackPages = (globalOptions) => {
         output += `var Provider = require( 'react-redux' ).Provider;
                    var store = require( '${props.store}' );
                    window.ReactRootProvider = Provider;
-                   window.ReactRootStore = store;
-                   var renderedElement = ReactDOM.${method}( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( 'content' ));`
+                   window.ReactRootStore = store;`
+        // hydtareRoot(domNode, reactNode) vs hydrate(reactNode, domNode)
+        if(props.dataSource.hydrateRoot) {
+          output += `var renderedElement = ReactDOM.${method}( ${domNode}, <Provider store={ store }>${reactNode}</Provider>);`
+        } else {
+          output += `var renderedElement = ReactDOM.${method}( <Provider store={ store }>${reactNode}</Provider>, ${domNode});`
+        }
       } else {
-        output += `var renderedElement = ReactDOM.${method}( <Element {...props} />, document.getElementById( 'content' ));`
+        if(props.dataSource.hydrateRoot) {
+          output += `var renderedElement = ReactDOM.${method}( ${domNode}, <Element {...props} />);`
+        } else { 
+          output += `var renderedElement = ReactDOM.${method}( ${reactNode}, ${domNode});`
+        }
       }
 
       const destFilename = options.destFilename
