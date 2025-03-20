@@ -17,7 +17,7 @@ const webpackPages = (globalOptions) => {
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
 
     const generateOutput = (template, props, options) => {
-      const method = props.dataSource && props.dataSource.hydrate ? 'hydrate' : 'render'
+      const method = props.dataSource && props.dataSource.hydrate ? 'hydrate' : props.dataSource.hydrateRoot ? 'hydrateRoot' : 'render'
       if (props.dataSource && props.dataSource.store) {
         props.store = props.dataSource.baseFolder || ''
         if (props.pagename && !props.dataSource.store.includes('../')) {
@@ -39,11 +39,26 @@ const webpackPages = (globalOptions) => {
         output += `var Provider = require( 'react-redux' ).Provider;
                    var store = require( '${props.store}' );
                    window.ReactRootProvider = Provider;
+                   window.ReactRootStore = store;`
+        // hydtareRoot(domNode, reactNode) vs hydrate(reactNode, domNode)
+        let output = `var React = require('react');
+                    var ReactDOM = require('react-dom');
+                    var Element = require('${template}');
+                    window.ReactRoot = Element;
+                    if (typeof Element.default === 'function') Element = Element.default;
+                    var props = ${JSON.stringify(props)};
+                    window.ReactRootProps = props;
+                    window.SSGTemplateGroup = '${templateGroup}';`
+      if (props.store) {
+        output += `var Provider = require('react-redux').Provider;
+                   var store = require('${props.store}');
+                   window.ReactRootProvider = Provider;
                    window.ReactRootStore = store;
-                   var renderedElement = ReactDOM.${method}( <Provider store={ store }><Element {...props} /></Provider>, document.getElementById( 'content' ));`
+                   var renderedElement = ReactDOM.${method}(${props.dataSource.hydrateRoot ? `${domNode}, <Provider store={store}><Element {...props} /></Provider>` : `<Provider store={store}><Element {...props} /></Provider>, ${domNode}`});`
       } else {
-        output += `var renderedElement = ReactDOM.${method}( <Element {...props} />, document.getElementById( 'content' ));`
+        output += `var renderedElement = ReactDOM.${method}(${props.dataSource.hydrateRoot ? `${domNode}, <Element {...props} />` : `<Element {...props} />, ${domNode}`});`
       }
+    }
 
       const destFilename = options.destFilename
       const filename = path.join(options.tempDir, destFilename)
