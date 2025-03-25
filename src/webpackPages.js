@@ -27,19 +27,6 @@ const webpackPages = (globalOptions) => {
       }
       const templateGroups = metalsmith._directory.split('/templates')
       const templateGroup = templateGroups.length > 1 ? '/templates' + templateGroups[1] : (props.group || '')
-      let output = `var React = require( 'react' );
-                    var ReactDOM = require( 'react-dom' );
-                    var Element = require( '${template}' );
-                    window.ReactRoot = Element;
-                    if ( typeof Element.default === 'function' ) Element = Element.default;
-                    var props = ${JSON.stringify(props)};
-                    window.ReactRootProps = props;
-                    window.SSGTemplateGroup = '${templateGroup}';`
-      if (props.store) {
-        output += `var Provider = require( 'react-redux' ).Provider;
-                   var store = require( '${props.store}' );
-                   window.ReactRootProvider = Provider;
-                   window.ReactRootStore = store;`
         // hydtareRoot(domNode, reactNode) vs hydrate(reactNode, domNode)
         let output = `var React = require('react');
                     var ReactDOM = require('react-dom');
@@ -58,7 +45,6 @@ const webpackPages = (globalOptions) => {
       } else {
         output += `var renderedElement = ReactDOM.${method}(${props.dataSource.hydrateRoot ? `${domNode}, <Element {...props} />` : `<Element {...props} />, ${domNode}`});`
       }
-    }
 
       const destFilename = options.destFilename
       const filename = path.join(options.tempDir, destFilename)
