@@ -27,8 +27,10 @@ const webpackPages = (globalOptions) => {
       }
       const templateGroups = metalsmith._directory.split('/templates')
       const templateGroup = templateGroups.length > 1 ? '/templates' + templateGroups[1] : (props.group || '')
-        // hydtareRoot(domNode, reactNode) vs hydrate(reactNode, domNode)
-        let output = `var React = require('react');
+      const reactNode = '<Element {...props} />'
+      const domNode = 'document.getElementById( \'content\' )'
+      // hydrateRoot(domNode, reactNode) vs hydrate(reactNode, domNode)
+      let output = `var React = require('react');
                     var ReactDOM = require('react-dom');
                     var Element = require('${template}');
                     window.ReactRoot = Element;
@@ -41,9 +43,9 @@ const webpackPages = (globalOptions) => {
                    var store = require('${props.store}');
                    window.ReactRootProvider = Provider;
                    window.ReactRootStore = store;
-                   var renderedElement = ReactDOM.${method}(${props.dataSource.hydrateRoot ? `${domNode}, <Provider store={store}><Element {...props} /></Provider>` : `<Provider store={store}><Element {...props} /></Provider>, ${domNode}`});`
+                   var renderedElement = ReactDOM.${method}(${props.dataSource.hydrateRoot ? `${domNode}, <Provider store={store}>${reactNode}</Provider>` : `<Provider store={store}>${reactNode}</Provider>, ${domNode}`});`
       } else {
-        output += `var renderedElement = ReactDOM.${method}(${props.dataSource.hydrateRoot ? `${domNode}, <Element {...props} />` : `<Element {...props} />, ${domNode}`});`
+        output += `var renderedElement = ReactDOM.${method}(${props.dataSource.hydrateRoot ? `${domNode}, ${reactNode}` : `${reactNode}, ${domNode}`});`
       }
 
       const destFilename = options.destFilename
