@@ -1,6 +1,7 @@
 import path from 'path'
 import Metalsmith from 'metalsmith'
-import markdown from 'metalsmith-markdown'
+import markdown from '@metalsmith/markdown'
+import markdownIt from 'markdown-it'
 import template from 'metalsmith-react-tpl'
 import getDataSource from './getDataSource'
 import assets from 'metalsmith-assets-improved'
@@ -34,7 +35,14 @@ const MetalSmithLoader = (opts) => {
   }
 
   metalSmith
-    .use(markdown())
+    .use(markdown({
+      parser: markdownIt,
+      parserOptions: {
+        html: true,
+        linkify: true,
+        typography: true
+      }
+    }))
     .use(template({
       babel: true,
       noConflict: false,
