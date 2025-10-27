@@ -143,6 +143,39 @@ const PageData = class PageData {
             }
           }
           
+          // Detect duplicate data (indicates API bug)
+          if (accumulatedData !== data) { // Not first request
+            if (!pagination._seenIds) pagination._seenIds = new Set()
+            
+            const { pageNameField } = dataSource
+            let newItems = 0
+            let duplicates = 0
+            
+            dataArray.forEach(item => {
+              const id = item[pageNameField] || item.id || JSON.stringify(item)
+              if (!pagination._seenIds.has(id)) {
+                pagination._seenIds.add(id)
+                newItems++
+              } else {
+                duplicates++
+              }
+            })
+            
+            // If we got a full page but ALL items are duplicates, API is broken
+            if (dataArray.length === this.getPaginationLimit(pagination) && newItems === 0) {
+              console.error(`🛑 Duplicate detection: Received ${dataArray.length} items but all are duplicates`)
+              console.error(`   API may be stuck returning same data (offset not working correctly)`)
+              console.error(`   Stopping pagination for ${fileName}`)
+              console.error(`   Total unique items retrieved: ${pagination._seenIds.size}`)
+              resolve(accumulatedData)
+              return
+            }
+            
+            if (duplicates > 0) {
+              console.warn(`⚠️  Page contained ${duplicates} duplicate items (${newItems} new items)`)
+            }
+          }
+          
           // Check if there are more pages
           if (this.hasMorePages(data, fileParams)) {
             // Update pagination parameters for next request (offset-based)
