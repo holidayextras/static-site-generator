@@ -13,6 +13,17 @@ const PageData = class PageData {
     return this.params.files
   }
 
+  // Get pagination limit from config or environment
+  getPaginationLimit (pagination = {}) {
+    return pagination.limit || process.env.SSG_PAGINATION_LIMIT || 100
+  }
+
+  // Get length of data array accounting for repeater
+  getDataArrayLength (data, repeater) {
+    const array = repeater ? data[repeater] : data
+    return Array.isArray(array) ? array.length : 0
+  }
+
   extractData (data, fileName, fileParams) {
     const { extraFiles, dataSource = { } } = fileParams
     const { repeater, pageDataField, pageNameField } = dataSource
@@ -78,8 +89,7 @@ const PageData = class PageData {
           data = JSON.parse(data)
           if (!data) return reject(new Error('Nothing returned'))
           if (data.message) return reject(data.message)
-          const response = this.extractData(data, fileName, fileParams)
-          return resolve(response)
+          return resolve(data)
         } catch (e) {
           return reject(e)
         }
@@ -87,18 +97,104 @@ const PageData = class PageData {
     })
   }
 
+  // Check if there's more data to fetch (pagination)
+  hasMorePages (data, fileParams) {
+    const { dataSource = {} } = fileParams
+    const { repeater, pagination = {} } = dataSource
+    
+    // Get the data array
+    let dataArray = repeater ? data[repeater] : data
+    if (!dataArray || !Array.isArray(dataArray)) return false
+    
+    // If we got fewer results than the limit, we've reached the end
+    const limit = this.getPaginationLimit(pagination)
+    if (dataArray.length < limit) return false
+    
+    // If we got a full page, assume there might be more
+    return dataArray.length === limit
+  }
+
+  // Fetch all paginated data
+  fetchAllPages (fileName, fileParams, accumulatedData = null) {
+    const { dataSource = {} } = fileParams
+    const { repeater, pagination = {} } = dataSource
+    
+    return new Promise((resolve, reject) => {
+      const request = this.prepareRequest(fileParams)
+      const requestMethod = request.port === '443' ? https : http
+      
+      requestMethod.get(request, res => {
+        this.getDataForPage(res, fileName, fileParams).then(data => {
+          // Get the data array from the response
+          let dataArray = repeater ? data[repeater] : data
+          
+          // Initialize accumulated data on first call
+          if (accumulatedData === null) {
+            accumulatedData = data
+          } else {
+            // Merge data arrays
+            const existingArray = repeater ? accumulatedData[repeater] : accumulatedData
+            if (Array.isArray(existingArray) && Array.isArray(dataArray)) {
+              if (repeater) {
+                accumulatedData[repeater] = existingArray.concat(dataArray)
+              } else {
+                accumulatedData = existingArray.concat(dataArray)
+              }
+            }
+          }
+          
+          // Check if there are more pages
+          if (this.hasMorePages(data, fileParams)) {
+            // Update pagination parameters for next request (offset-based)
+            const limit = this.getPaginationLimit(pagination)
+            pagination._currentOffset = (pagination._currentOffset || 0) + limit
+            
+            const currentCount = this.getDataArrayLength(accumulatedData, repeater)
+            console.log(`Fetching next page for ${fileName}... (${currentCount} items so far)`)
+            
+            // Recursively fetch next page
+            this.fetchAllPages(fileName, fileParams, accumulatedData)
+              .then(resolve)
+              .catch(reject)
+          } else {
+            // No more pages, return accumulated data
+            const totalItems = this.getDataArrayLength(accumulatedData, repeater)
+            console.log(`Finished fetching all pages for ${fileName}. Total items: ${totalItems}`)
+            resolve(accumulatedData)
+          }
+        }).catch(reject)
+      })
+    })
+  }
+
   // Call the API per markdown file and get data for each one returned.
   callAPI (fileName, fileParams) {
+    return new Promise((resolve, reject) => {
+      const { dataSource = {} } = fileParams
+      const { pagination = {} } = dataSource
+      
+      // Choose fetching strategy: pagination (default) or single-request
+      const fetchData = pagination.enabled === false
+        ? this.fetchSinglePage(fileName, fileParams)
+        : this.fetchAllPages(fileName, fileParams)
+      
+      fetchData.then(data => {
+        const response = this.extractData(data, fileName, fileParams)
+        // Remove the markdown file from metalsmith as its not an actual page
+        delete this.params.files[fileName]
+        if (response.response) return resolve(response.response)
+        return reject(new Error('No response found'))
+      }).catch(reject)
+    })
+  }
+
+  // Fetch a single page (legacy behavior)
+  fetchSinglePage (fileName, fileParams) {
     return new Promise((resolve, reject) => {
       const request = this.prepareRequest(fileParams)
       const requestMethod = request.port === '443' ? https : http
       requestMethod.get(request, res => {
-        this.getDataForPage(res, fileName, fileParams).then(fileData => {
-          // Remove the markdown file from metalsmith as its not an actual page
-          delete this.params.files[fileName]
-          if (fileData.response) return resolve(fileData.response)
-          return reject(new Error('No response found'))
-        }).catch(reject)
+        this.getDataForPage(res, fileName, fileParams).then(resolve).catch(reject)
       })
     })
   }
@@ -140,15 +236,28 @@ const PageData = class PageData {
 
   prepareRequest (fileParams) {
     const { opts } = this.params
+    const { dataSource = {} } = fileParams
+    const { pagination = {} } = dataSource
+    
     const request = {
       timeout: 10000,
-      host: fileParams.dataSource.host,
-      port: fileParams.dataSource.port || '443',
+      host: dataSource.host,
+      port: dataSource.port || '443',
       headers: {
         accept: '*/*'
       }
     }
-    request.path = fileParams.dataSource.query.replace(/\s+/gm, '')
+    request.path = dataSource.query.replace(/\s+/gm, '')
+    
+    // Add pagination parameters (enabled by default, unless explicitly disabled)
+    if (pagination.enabled !== false) {
+      const separator = request.path.indexOf('?') > -1 ? '&' : '?'
+      const limit = this.getPaginationLimit(pagination)
+      const currentOffset = pagination._currentOffset || 0
+      // Offset-based pagination: ?offset=0&limit=100, ?offset=100&limit=100, etc.
+      request.path += `${separator}offset=${currentOffset}&limit=${limit}`
+    }
+    
     if (opts.token && opts.token.name && opts.token.value) {
       request.path += request.path.indexOf('?') > -1 ? '&' : '?'
       request.path += opts.token.name + '=' + opts.token.value
