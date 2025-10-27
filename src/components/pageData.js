@@ -287,8 +287,8 @@ const PageData = class PageData {
       const separator = request.path.indexOf('?') > -1 ? '&' : '?'
       const limit = this.getPaginationLimit(pagination)
       const currentOffset = pagination._currentOffset || 0
-      // Offset-based pagination: ?offset=0&limit=100, ?offset=100&limit=100, etc.
-      request.path += `${separator}offset=${currentOffset}&limit=${limit}`
+      // JSON API pagination: ?page[offset]=0&page[limit]=100, ?page[offset]=100&page[limit]=100, etc.
+      request.path += `${separator}page[offset]=${currentOffset}&page[limit]=${limit}`
     }
     
     if (opts.token && opts.token.name && opts.token.value) {

@@ -117,7 +117,7 @@ pagination:
   limit: 100
 ```
 
-Generates requests like: `?offset=0&limit=100`, `?offset=100&limit=100`, etc.
+Generates requests like: `?page[offset]=0&page[limit]=100`, `?page[offset]=100&page[limit]=100`, etc.
 
 ### How It Works
 
@@ -131,18 +131,13 @@ Generates requests like: `?offset=0&limit=100`, `?offset=100&limit=100`, etc.
 
 The SSG automatically adds offset-based pagination parameters to your API requests:
 
-`?offset=0&limit=100`, `?offset=100&limit=100`, etc.
+`?page[offset]=0&page[limit]=100`, `?page[offset]=100&page[limit]=100`, etc.
 
 These parameter names (`offset` and `limit`) are fixed and match hapi's standard. If your API uses different parameter names in the future, we can add that flexibility.
 
 ### Testing Pagination
 
-To test pagination with a small page size, set the `SSG_PAGINATION_LIMIT` environment variable:
-
-```bash
-# Test with small page size to verify pagination works
-SSG_PAGINATION_LIMIT=10 npm run build
-```
+To test pagination with a small page size, set the `SSG_PAGINATION_LIMIT` environment variable in an SSG repo:
 
 This will force the SSG to fetch only 10 items per request, making it easier to verify that pagination is working correctly across multiple pages. You'll see console output showing the progress:
 
