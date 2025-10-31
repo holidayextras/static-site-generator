@@ -15,7 +15,7 @@ const PageData = class PageData {
 
   // Get pagination limit from config or environment
   getPaginationLimit (pagination = {}) {
-    return pagination.limit || process.env.SSG_PAGINATION_LIMIT || 100
+    return pagination.limit || process.env.SSG_PAGINATION_LIMIT || 1000
   }
 
   // Get length of data array accounting for repeater
