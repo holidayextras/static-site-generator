@@ -20,8 +20,33 @@ const PageData = class PageData {
 
   // Get length of data array accounting for repeater
   getDataArrayLength (data, repeater) {
-    const array = repeater ? data[repeater] : data
+    const array = this.getDataArray(data, repeater)
     return Array.isArray(array) ? array.length : 0
+  }
+
+  // Get HTTP/HTTPS module based on port
+  getHttpModule (port) {
+    return port === '443' ? https : http
+  }
+
+  // Get query separator (? or &)
+  getQuerySeparator (path) {
+    return path.indexOf('?') > -1 ? '&' : '?'
+  }
+
+  // Extract data array from response (with or without repeater)
+  getDataArray (data, repeater) {
+    return repeater ? data[repeater] : data
+  }
+
+  // Update data with new array (respecting repeater)
+  updateDataArray (data, repeater, newArray) {
+    if (repeater) {
+      data[repeater] = newArray
+    } else {
+      data = newArray
+    }
+    return data
   }
 
   extractData (data, fileName, fileParams) {
@@ -97,105 +122,165 @@ const PageData = class PageData {
     })
   }
 
-  // Check if there's more data to fetch (pagination)
-  hasMorePages (data, fileParams) {
+  fetchAllPages (fileName, fileParams, initialData) {
     const { dataSource = {} } = fileParams
     const { repeater, pagination = {} } = dataSource
-    
-    // Get the data array
-    let dataArray = repeater ? data[repeater] : data
-    if (!dataArray || !Array.isArray(dataArray)) return false
-    
-    // If we got fewer results than the limit, we've reached the end
-    const limit = this.getPaginationLimit(pagination)
-    if (dataArray.length < limit) return false
-    
-    // If we got a full page, assume there might be more
-    return dataArray.length === limit
-  }
-
-  // Fetch all paginated data
-  fetchAllPages (fileName, fileParams, accumulatedData = null) {
-    const { dataSource = {} } = fileParams
-    const { repeater, pagination = {} } = dataSource
-    
     return new Promise((resolve, reject) => {
-      const request = this.prepareRequest(fileParams)
-      const requestMethod = request.port === '443' ? https : http
+    
+      let dataArray = this.getDataArray(initialData, repeater)
       
-      requestMethod.get(request, res => {
-        this.getDataForPage(res, fileName, fileParams).then(data => {
-          // Get the data array from the response
-          let dataArray = repeater ? data[repeater] : data
+      // Check if pagination metadata exists
+      // Support both meta.pagination (standard) and meta.page (hapi JSON:API format)
+      const hasPaginationMeta = !!(initialData.meta && (initialData.meta.pagination || initialData.meta.page));
+      const requiresPagination = (pagination.enabled !== false) && hasPaginationMeta;
+      let totalPages = 0
+      let currentPage = 1
+      let paginationFormat = 'standard' // 'standard' or 'jsonapi'
+      let pageLimit = this.getPaginationLimit(pagination)
+    
+      
+      if (requiresPagination) {
+        // Check for standard pagination format
+        if (initialData.meta.pagination) {
+          totalPages = initialData.meta.pagination.totalPages || 0
+          currentPage = initialData.meta.pagination.currentPage || 1
+          paginationFormat = 'standard'
+        } 
+        // Check for hapi JSON:API format (meta.page with total, limit, offset)
+        else if (initialData.meta.page) {
+          const pageInfo = initialData.meta.page
+          const total = pageInfo.total || 0
+          // pageLimit = pageInfo.limit || 300
+          totalPages = Math.ceil(total / pageLimit)
+          currentPage = Math.floor((pageInfo.offset || 0) / pageLimit) + 1
+          paginationFormat = 'jsonapi'
+
+        }
+      }
+      
+      const hasMorePages = totalPages > 1
+      
+      
+      if (!hasMorePages) {
+        // No pagination, return the initial data
+        const response = this.extractData(initialData, fileName, fileParams)
+        console.log('Extracted', response.response ? response.response.length : 0, 'files from single page')
+        return resolve(response)
+      }
+      
+      console.log(`PAGINATION DETECTED! Fetching page ${currentPage} of ${totalPages} for ${fileName}`)
+      console.log('Will fetch pages:', Array.from({ length: totalPages - currentPage }, (_, i) => currentPage + 1 + i))
+      
+      // Create array of promises for remaining pages
+      const pagePromises = []
+      for (let page = currentPage + 1; page <= totalPages; page++) {
+        pagePromises.push(this.fetchPage(fileName, fileParams, page, paginationFormat))
+      }
+      
+      console.log('Fetching', pagePromises.length, 'additional pages in parallel')
+      
+      // Fetch all remaining pages
+      Promise.all(pagePromises).then(additionalPages => {
+        console.log('All additional pages fetched, count:', additionalPages.length)
+        
+        // Helper function to get unique ID from an item
+        const getItemId = (item) => {
+          return item.id || item.pageName || (item.attributes && item.attributes.pageName) || null
+        }
+        
+        // Track unique IDs we've already seen (to handle API that ignores limit and returns duplicates)
+        const seenIds = new Set()
+        if (Array.isArray(dataArray)) {
+          dataArray.forEach(item => {
+            const id = getItemId(item)
+            if (id) seenIds.add(id)
+          })
+        }
+        
+        // Track IDs from each page for comparison
+        const pageIdsMap = {}
+        if (Array.isArray(dataArray) && dataArray.length > 0) {
+          pageIdsMap[1] = dataArray.map(item => getItemId(item)).filter(id => id !== null)
+        }
+        
+        // Combine all data with deduplication
+        additionalPages.forEach((pageData, index) => {
+          const actualPageNumber = currentPage + 1 + index
+          console.log('Processing additional page', index + 1, 'of', additionalPages.length, '(page', actualPageNumber, 'from API)')
+          const pageArrayLength = this.getDataArrayLength(pageData, repeater)
           
-          // Initialize accumulated data on first call
-          if (accumulatedData === null) {
-            accumulatedData = data
-          } else {
-            // Merge data arrays
-            const existingArray = repeater ? accumulatedData[repeater] : accumulatedData
-            if (Array.isArray(existingArray) && Array.isArray(dataArray)) {
-              if (repeater) {
-                accumulatedData[repeater] = existingArray.concat(dataArray)
-              } else {
-                accumulatedData = existingArray.concat(dataArray)
-              }
-            }
-          }
+          // Skip if no items
+          if (pageArrayLength === 0) return
           
-          // Detect duplicate data (indicates API bug)
-          if (accumulatedData !== data) { // Not first request
-            if (!pagination._seenIds) pagination._seenIds = new Set()
-            
-            const { pageNameField } = dataSource
-            let newItems = 0
-            let duplicates = 0
-            
-            dataArray.forEach(item => {
-              const id = item[pageNameField] || item.id || JSON.stringify(item)
-              if (!pagination._seenIds.has(id)) {
-                pagination._seenIds.add(id)
-                newItems++
-              } else {
-                duplicates++
+          const pageArray = this.getDataArray(pageData, repeater)
+          
+          // Deduplicate: only add items we haven't seen before
+          const uniqueItems = pageArray.filter(item => {
+              const id = getItemId(item)
+              if (!id) return true // Include items without IDs (shouldn't happen but safer)
+              if (seenIds.has(id)) {
+                return false
               }
+              seenIds.add(id)
+              return true
             })
             
-            // If we got a full page but ALL items are duplicates, API is broken
-            if (dataArray.length === this.getPaginationLimit(pagination) && newItems === 0) {
-              console.error(`🛑 Duplicate detection: Received ${dataArray.length} items but all are duplicates`)
-              console.error(`   API may be stuck returning same data (offset not working correctly)`)
-              console.error(`   Stopping pagination for ${fileName}`)
-              console.error(`   Total unique items retrieved: ${pagination._seenIds.size}`)
-              resolve(accumulatedData)
-              return
+            if (uniqueItems.length < pageArray.length) {
+              console.log('Deduplicated page', actualPageNumber, '- removed', pageArray.length - uniqueItems.length, 'duplicates')
             }
             
-            if (duplicates > 0) {
-              console.warn(`⚠️  Page contained ${duplicates} duplicate items (${newItems} new items)`)
+            if (uniqueItems && uniqueItems.length) {
+              const beforeLength = this.getDataArrayLength(initialData, repeater)
+              dataArray = dataArray.concat(uniqueItems)
+              console.log('Combined page', actualPageNumber, '- before:', beforeLength, 'after:', dataArray.length, '(added', uniqueItems.length, 'unique items)')
+            } else {
+              console.log('Page', actualPageNumber, '- all items were duplicates, nothing added')
             }
-          }
-          
-          // Check if there are more pages
-          if (this.hasMorePages(data, fileParams)) {
-            // Update pagination parameters for next request (offset-based)
-            const limit = this.getPaginationLimit(pagination)
-            pagination._currentOffset = (pagination._currentOffset || 0) + limit
-            
-            const currentCount = this.getDataArrayLength(accumulatedData, repeater)
-            console.log(`Fetching next page for ${fileName}... (${currentCount} items so far)`)
-            
-            // Recursively fetch next page
-            this.fetchAllPages(fileName, fileParams, accumulatedData)
-              .then(resolve)
-              .catch(reject)
-          } else {
-            // No more pages, return accumulated data
-            const totalItems = this.getDataArrayLength(accumulatedData, repeater)
-            console.log(`Finished fetching all pages for ${fileName}. Total items: ${totalItems}`)
-            resolve(accumulatedData)
-          }
-        }).catch(reject)
+        })
+        
+        // Update the data with combined results
+        initialData = this.updateDataArray(initialData, repeater, dataArray)
+        
+        const totalItems = this.getDataArrayLength(initialData, repeater)
+        console.log(`Updated data with ${totalItems} items`)
+        console.log(`✅ Fetched all ${totalPages} pages, total items: ${totalItems}`)
+        
+        const response = this.extractData(initialData, fileName, fileParams)
+        return resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  }
+
+  fetchPage (fileName, fileParams, pageNumber, paginationFormat) {
+    return new Promise((resolve, reject) => {
+      const request = this.prepareRequest(fileParams)
+      const pageLimit = this.getPaginationLimit(fileParams.dataSource.pagination)
+      // Add page parameter to the request based on format
+      const separator = this.getQuerySeparator(request.path)
+      if (paginationFormat === 'jsonapi') {
+        // JSON:API uses page[offset] and page[limit]
+        // Remove existing page[limit] if present (prepareRequest may have added it)
+        request.path = request.path.replace(/[&?]page\[limit\]=\d+/g, '')
+        const offset = (pageNumber - 1) * pageLimit
+        request.path += `${separator}page[offset]=${offset}&page[limit]=${pageLimit}`
+      } else {
+        // Standard format uses page parameter
+        request.path += `${separator}page=${pageNumber}`
+      }
+      
+      console.log('Requesting page', pageNumber)
+      
+      const requestMethod = this.getHttpModule(request.port)
+      requestMethod.get(request, res => {
+        this.getDataForPage(res, fileName, fileParams).then(data => {
+          return resolve(data)
+        }).catch(error => {
+          reject(error)
+        })
+      }).on('error', error => {
+        reject(error)
       })
     })
   }
@@ -203,31 +288,25 @@ const PageData = class PageData {
   // Call the API per markdown file and get data for each one returned.
   callAPI (fileName, fileParams) {
     return new Promise((resolve, reject) => {
-      const { dataSource = {} } = fileParams
-      const { pagination = {} } = dataSource
-      
-      // Choose fetching strategy: pagination (default) or single-request
-      const fetchData = pagination.enabled === false
-        ? this.fetchSinglePage(fileName, fileParams)
-        : this.fetchAllPages(fileName, fileParams)
-      
-      fetchData.then(data => {
-        const response = this.extractData(data, fileName, fileParams)
-        // Remove the markdown file from metalsmith as its not an actual page
-        delete this.params.files[fileName]
-        if (response.response) return resolve(response.response)
-        return reject(new Error('No response found'))
-      }).catch(reject)
-    })
-  }
-
-  // Fetch a single page (legacy behavior)
-  fetchSinglePage (fileName, fileParams) {
-    return new Promise((resolve, reject) => {
       const request = this.prepareRequest(fileParams)
-      const requestMethod = request.port === '443' ? https : http
+      
+      const requestMethod = this.getHttpModule(request.port)
       requestMethod.get(request, res => {
-        this.getDataForPage(res, fileName, fileParams).then(resolve).catch(reject)
+        this.getDataForPage(res, fileName, fileParams).then(initialData => {
+          // Handle pagination first (before deleting file, as extractData needs it)
+          return this.fetchAllPages(fileName, fileParams, initialData)
+        }).then(fileData => {
+          // Remove the markdown file from metalsmith as its not an actual page (after extraction is complete)
+          delete this.params.files[fileName]
+          if (fileData.response) {
+            return resolve(fileData.response)
+          }
+          return reject(new Error('No response found'))
+        }).catch(error => {
+          reject(error)
+        })
+      }).on('error', error => {
+        reject(error)
       })
     })
   }
@@ -253,9 +332,12 @@ const PageData = class PageData {
           fileParams.query = fileParams.query.replace(option[0], value)
           fileParams.dataSource = fileParams // Needs to double up for functions
           const request = this.prepareRequest(fileParams)
-          const requestMethod = request.port === '443' ? https : http
+          const requestMethod = this.getHttpModule(request.port)
           return requestMethod.get(request, res => {
-            this.getDataForPage(res, currentFile.key, fileParams).then(newFiles => {
+            this.getDataForPage(res, currentFile.key, fileParams).then(initialData => {
+              // Handle pagination for extra API calls
+              return this.fetchAllPages(currentFile.key, fileParams, initialData)
+            }).then(newFiles => {
               this.params.files[currentFile.key][opt] = newFiles.data
               resolve()
             }).catch(reject)
@@ -284,16 +366,18 @@ const PageData = class PageData {
     
     // Add pagination parameters (enabled by default, unless explicitly disabled)
     if (pagination.enabled !== false) {
-      const separator = request.path.indexOf('?') > -1 ? '&' : '?'
+      const separator = this.getQuerySeparator(request.path)
       const limit = this.getPaginationLimit(pagination)
       const currentOffset = pagination._currentOffset || 0
-      // JSON API pagination: ?page[offset]=0&page[limit]=100, ?page[offset]=100&page[limit]=100, etc.
-      request.path += `${separator}page[offset]=${currentOffset}&page[limit]=${limit}`
+      // Only add limit if it doesn't already exist in the query
+      var limitRegex = /[&?]page\[limit\]=\d+/;
+      if (!limitRegex.test(request.path)) {
+        request.path += `${separator}page[offset]=${currentOffset}&page[limit]=${limit}`
+      }
     }
-    
     if (opts.token && opts.token.name && opts.token.value) {
-      request.path += request.path.indexOf('?') > -1 ? '&' : '?'
-      request.path += opts.token.name + '=' + opts.token.value
+      const separator = this.getQuerySeparator(request.path)
+      request.path += separator + opts.token.name + '=' + opts.token.value
     }
     return request
   }
