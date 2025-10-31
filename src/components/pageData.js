@@ -364,17 +364,6 @@ const PageData = class PageData {
     }
     request.path = dataSource.query.replace(/\s+/gm, '')
     
-    // Add pagination parameters (enabled by default, unless explicitly disabled)
-    if (pagination.enabled !== false) {
-      const separator = this.getQuerySeparator(request.path)
-      const limit = this.getPaginationLimit(pagination)
-      const currentOffset = pagination._currentOffset || 0
-      // Only add limit if it doesn't already exist in the query
-      var limitRegex = /[&?]page\[limit\]=\d+/;
-      if (!limitRegex.test(request.path)) {
-        request.path += `${separator}page[offset]=${currentOffset}&page[limit]=${limit}`
-      }
-    }
     if (opts.token && opts.token.name && opts.token.value) {
       const separator = this.getQuerySeparator(request.path)
       request.path += separator + opts.token.name + '=' + opts.token.value
