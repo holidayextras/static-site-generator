@@ -154,12 +154,10 @@ const PageData = class PageData {
           totalPages = Math.ceil(total / pageLimit)
           currentPage = Math.floor((pageInfo.offset || 0) / pageLimit) + 1
           paginationFormat = 'jsonapi'
-
         }
       }
       
       const hasMorePages = totalPages > 1
-      
       
       if (!hasMorePages) {
         // No pagination, return the initial data
