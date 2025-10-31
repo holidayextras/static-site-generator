@@ -145,9 +145,8 @@ const PageData = class PageData {
           totalPages = initialData.meta.pagination.totalPages || 0
           currentPage = initialData.meta.pagination.currentPage || 1
           paginationFormat = 'standard'
-        } 
-        // Check for hapi JSON:API format (meta.page with total, limit, offset)
-        else if (initialData.meta.page) {
+        } else if (initialData.meta.page) {
+          // Check for hapi JSON:API format (meta.page with total, limit, offset)
           const pageInfo = initialData.meta.page
           const total = pageInfo.total || 0
           // pageLimit = pageInfo.limit || 300
