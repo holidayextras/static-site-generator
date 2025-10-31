@@ -350,7 +350,6 @@ const PageData = class PageData {
   prepareRequest (fileParams) {
     const { opts } = this.params
     const { dataSource = {} } = fileParams
-    const { pagination = {} } = dataSource
     
     const request = {
       timeout: 10000,
