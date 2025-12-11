@@ -2,8 +2,7 @@
 
 async function fetchHapiPaginated (url, timeout = 10000) {
   const newUrl = new URL(url)
-  const originalLimit = parseInt(newUrl.searchParams.get('page[limit]'), 10) || 1000 // default to 1000 as thats current HAPI limit...
-  newUrl.searchParams.set('page[limit]', 1000) // bit of tech debt to force a limit of 1000 as hapi bug expects 1000
+  const originalLimit = parseInt(newUrl.searchParams.get('page[limit]'), 10) || 50 // default to 50 as JSONAPI will default to 50 if undefined
 
   return await fetchWithPagination(newUrl.toString(), originalLimit, timeout)
 }
