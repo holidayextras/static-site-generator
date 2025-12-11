@@ -1,5 +1,6 @@
 import http from 'http'
 import https from 'https'
+import { fetchHapiPaginated } from './pagination.js'
 import pageNameChanger from './pageNameChanger'
 import pageNameSanitiser from './pageNameSanitiser'
 
@@ -15,9 +16,8 @@ const PageData = class PageData {
 
   extractData (data, fileName, fileParams) {
     const { extraFiles, dataSource = { } } = fileParams
-    const { repeater, pageDataField, pageNameField } = dataSource
+    const { pageDataField, pageNameField } = dataSource
     const newFiles = []
-    if (repeater) data = data[repeater]
     if (!data || !data.length) {
       return {
         data,
@@ -60,50 +60,41 @@ const PageData = class PageData {
     }
   }
 
-  // Make request to the API endpoint in the markdown file
-  getDataForPage (res, fileName, fileParams) {
-    return new Promise((resolve, reject) => {
-      let data = ''
-      res.on('data', d => {
-        data += d
-      })
-      res.on('end', () => {
-        try {
-          const newData = data.split('').map(char => char.charCodeAt(0).toString().length < 4 ? char : `&#${char.charCodeAt(0)};`).join('').replace(/(\\u|\\x|\\d)\d{4}/gm, '').replace(/&#822[0-1];/gm, '\\"').replace(/&#821[6-7];/gm, '\'')
-          data = newData
-        } catch (e) {
-          console.log(e, 'Can\'t convert charCodeAt')
-        }
-        try {
-          data = JSON.parse(data)
-          if (!data) return reject(new Error('Nothing returned'))
-          if (data.message) return reject(data.message)
-          const response = this.extractData(data, fileName, fileParams)
-          return resolve(response)
-        } catch (e) {
-          return reject(e)
-        }
-      })
-    })
+  // Helper to build the full API URL for a file's dataSource
+  _buildUrl(fileParams) {
+    const host = fileParams.dataSource.host
+    const query = fileParams.dataSource.query
+    const port = fileParams.dataSource.port || '443'
+    
+    // Use https if port is 443, otherwise use http with port
+    let url = (port === '443')
+      ? `https://${host}${query}`
+      : `http://${host}:${port}${query}`
+    
+    const opts = this.params.opts
+    if (opts && opts.token && opts.token.name && opts.token.value) {
+      const delimiter = url.includes('?') ? '&' : '?'
+      url += `${delimiter}${opts.token.name}=${opts.token.value}`
+    }
+    return url
   }
 
   // Call the API per markdown file and get data for each one returned.
-  callAPI (fileName, fileParams) {
-    return new Promise((resolve, reject) => {
-      const request = this.prepareRequest(fileParams)
-      const requestMethod = request.port === '443' ? https : http
-      requestMethod.get(request, res => {
-        this.getDataForPage(res, fileName, fileParams).then(fileData => {
-          // Remove the markdown file from metalsmith as its not an actual page
-          delete this.params.files[fileName]
-          if (fileData.response) return resolve(fileData.response)
-          return reject(new Error('No response found'))
-        }).catch(reject)
-      })
-    })
+  async callAPI(fileName, fileParams) {
+    const url = this._buildUrl(fileParams)
+    const data = await fetchHapiPaginated(url)
+
+    if (data) {
+      const response = this.extractData(data, fileName, fileParams) // removed repeater because hapi always returns 'data' (hapi responseHelper._generateResponse)... rather than whatever is in repeater field, so its useless
+      
+      delete this.params.files[fileName] // Remove the markdown file from metalsmith as its not an actual page
+      if (response?.response)
+        return response.response
+    }
+    throw new Error('No response found')
   }
 
-  makeExtraAPICalls (data, fileParams, callBack) {
+  async makeExtraAPICalls(data, fileParams, callBack) {
     // Now check for additional requests per page returned from API call
     // This can be prodlib data based on an SEO object
     if (!fileParams.dataSource.extras) return callBack()
@@ -111,49 +102,28 @@ const PageData = class PageData {
     return Object.keys(loop).filter(opt => loop[opt].query).map(opt => {
       loop[opt].extraFiles = true
       const option = loop[opt].query.match(/<%([^%].*)%>/)
-      const extraPageData = data.map(currentFile => {
-        return new Promise((resolve, reject) => {
-          if (!currentFile.data.pageData[option[1]]) {
-            const errorMsg = `No extra options found for ${this.params.files[currentFile.key].pageName}`
-            console.log(errorMsg)
-            reject(new Error(errorMsg))
-            return delete this.params.files[currentFile.key]
-          }
-          const value = currentFile.data.pageData[option[1]]
-          fileParams = Object.assign({}, loop[opt])
-          fileParams.query = fileParams.query.replace(option[0], value)
-          fileParams.dataSource = fileParams // Needs to double up for functions
-          const request = this.prepareRequest(fileParams)
-          const requestMethod = request.port === '443' ? https : http
-          return requestMethod.get(request, res => {
-            this.getDataForPage(res, currentFile.key, fileParams).then(newFiles => {
-              this.params.files[currentFile.key][opt] = newFiles.data
-              resolve()
-            }).catch(reject)
-          })
-        })
+      const extraPageData = data.map(async currentFile => {
+        if (!currentFile.data.pageData[option[1]]) {
+          const errorMsg = `No extra options found for ${this.params.files[currentFile.key].pageName}`
+          console.log(errorMsg)
+          delete this.params.files[currentFile.key]
+          throw new Error(errorMsg)
+        }
+        const value = currentFile.data.pageData[option[1]]
+        fileParams = Object.assign({}, loop[opt])
+        fileParams.query = fileParams.query.replace(option[0], value)
+        fileParams.dataSource = fileParams // Needs to double up for functions
+
+        const url = this._buildUrl(fileParams)
+        const paginatedData = await fetchHapiPaginated(url)
+        if (paginatedData) {
+          const response = this.extractData({ data: paginatedData }, currentFile.key, fileParams)
+          this.params.files[currentFile.key][opt] = response.data
+        }
       })
       Promise.all(extraPageData).then(callBack).catch(callBack)
       return opt
     })
-  }
-
-  prepareRequest (fileParams) {
-    const { opts } = this.params
-    const request = {
-      timeout: 10000,
-      host: fileParams.dataSource.host,
-      port: fileParams.dataSource.port || '443',
-      headers: {
-        accept: '*/*'
-      }
-    }
-    request.path = fileParams.dataSource.query.replace(/\s+/gm, '')
-    if (opts.token && opts.token.name && opts.token.value) {
-      request.path += request.path.indexOf('?') > -1 ? '&' : '?'
-      request.path += opts.token.name + '=' + opts.token.value
-    }
-    return request
   }
 
   // Remove anything in the markdown query that isn't this single page
