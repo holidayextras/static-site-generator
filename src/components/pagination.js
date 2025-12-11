@@ -1,8 +1,10 @@
-async function fetchHapiPaginated(url, timeout = 10000) {
+/* global fetch, AbortController */
+
+async function fetchHapiPaginated (url, timeout = 10000) {
   const newUrl = new URL(url)
   const originalLimit = parseInt(newUrl.searchParams.get('page[limit]'), 10) || 1000 // default to 1000 as thats current HAPI limit...
   newUrl.searchParams.set('page[limit]', 1000) // bit of tech debt to force a limit of 1000 as hapi bug expects 1000
-  
+
   return await fetchWithPagination(newUrl.toString(), originalLimit, timeout)
 }
 
@@ -14,11 +16,11 @@ async function fetchHapiPaginated(url, timeout = 10000) {
  * @param {number} timeout - Request timeout in ms (default: 10000)
  * @returns {Promise<Array>} - Flattened array of all paginated results
  */
-async function fetchWithPagination(hapiUrl, pageLimit, timeout = 10000) {
+async function fetchWithPagination (hapiUrl, pageLimit, timeout = 10000) {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeout)
 
-  let allResults = []
+  const allResults = []
   let currentUrl = hapiUrl
 
   try {
@@ -66,7 +68,5 @@ async function fetchWithPagination(hapiUrl, pageLimit, timeout = 10000) {
     clearTimeout(timeoutId)
   }
 }
-
-
 
 export { fetchHapiPaginated }

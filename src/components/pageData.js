@@ -1,5 +1,3 @@
-import http from 'http'
-import https from 'https'
 import { fetchHapiPaginated } from './pagination.js'
 import pageNameChanger from './pageNameChanger'
 import pageNameSanitiser from './pageNameSanitiser'
@@ -61,16 +59,16 @@ const PageData = class PageData {
   }
 
   // Helper to build the full API URL for a file's dataSource
-  _buildUrl(fileParams) {
+  _buildUrl (fileParams) {
     const host = fileParams.dataSource.host
     const query = fileParams.dataSource.query
     const port = fileParams.dataSource.port || '443'
-    
+
     // Use https if port is 443, otherwise use http with port
     let url = (port === '443')
       ? `https://${host}${query}`
       : `http://${host}:${port}${query}`
-    
+
     const opts = this.params.opts
     if (opts && opts.token && opts.token.name && opts.token.value) {
       const delimiter = url.includes('?') ? '&' : '?'
@@ -80,21 +78,22 @@ const PageData = class PageData {
   }
 
   // Call the API per markdown file and get data for each one returned.
-  async callAPI(fileName, fileParams) {
+  async callAPI (fileName, fileParams) {
     const url = this._buildUrl(fileParams)
     const data = await fetchHapiPaginated(url)
 
     if (data) {
       const response = this.extractData(data, fileName, fileParams) // removed repeater because hapi always returns 'data' (hapi responseHelper._generateResponse)... rather than whatever is in repeater field, so its useless
-      
+
       delete this.params.files[fileName] // Remove the markdown file from metalsmith as its not an actual page
-      if (response?.response)
+      if (response?.response) {
         return response.response
+      }
     }
     throw new Error('No response found')
   }
 
-  async makeExtraAPICalls(data, fileParams, callBack) {
+  async makeExtraAPICalls (data, fileParams, callBack) {
     // Now check for additional requests per page returned from API call
     // This can be prodlib data based on an SEO object
     if (!fileParams.dataSource.extras) return callBack()
