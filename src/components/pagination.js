@@ -10,10 +10,10 @@ async function fetchHapiPaginated (url, timeout = 10000) {
 /**
  * Pagination utility that fetches all data from a cursor-based API endpoint using links.next.
  *
- * @param {string} baseUrl - The API endpoint URL (can include query parameters)
+ * @param {string} hapiUrl - The API endpoint URL (can include query parameters)
  * @param {number} pageLimit - Maximum number of items to fetch
  * @param {number} timeout - Request timeout in ms (default: 10000)
- * @returns {Promise<Array>} - Flattened array of all paginated results
+ * @returns {Promise<Array|null>} - Flattened array of all paginated results, or null if no results found
  */
 async function fetchWithPagination (hapiUrl, pageLimit, timeout = 10000) {
   const controller = new AbortController()
