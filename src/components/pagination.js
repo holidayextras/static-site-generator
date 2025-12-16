@@ -4,10 +4,11 @@
  * Paginated fetch all data using links.next in response
  *
  * @param {string} hapiUrl - The API endpoint URL (can include query parameters)
+ * @param {string} repeater - The repeater to fetch data from (default: 'data')
  * @param {number} timeout - Per-request timeout in ms (default: 10000)
  * @returns {Promise<Array|null>} - Flattened array of all paginated data, or null if no results found
  */
-async function fetchWithPagination (hapiUrl, timeout = 10000) {
+async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000) {
   const allResults = []
   let currentUrl = hapiUrl
 
@@ -39,14 +40,20 @@ async function fetchWithPagination (hapiUrl, timeout = 10000) {
         throw new Error(responseData.message)
       }
 
-      // Always expect 'data' in response and next page in 'links.next'
-      const pageData = responseData.data
+      // Expect data in response and next page in 'links.next'
+      const pageData = responseData[repeater]
 
       if (Array.isArray(pageData)) {
         for (const item of pageData) {
           allResults.push(item)
         }
       }
+
+      // Calculate pagination request numbers from offset, limit, and total
+      const pageMeta = responseData.meta.page
+      const currentRequest = Math.floor(pageMeta.offset / pageMeta.limit) + 1
+      const totalRequests = Math.ceil(pageMeta.total / pageMeta.limit)
+      console.log(`[Pagination] Fetched ${(currentRequest / totalRequests * 100).toFixed(0)}% from ${currentUrl}`)
 
       // Get the next page URL
       currentUrl = responseData.links?.next

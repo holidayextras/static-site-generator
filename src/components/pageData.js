@@ -80,10 +80,10 @@ const PageData = class PageData {
   // Call the API per markdown file and get data for each one returned.
   async callAPI (fileName, fileParams) {
     const url = this._buildUrl(fileParams)
-    const data = await fetchWithPagination(url)
+    const data = await fetchWithPagination(url, fileParams?.dataSource?.repeater || 'data')
 
     if (data) {
-      const response = this.extractData(data, fileName, fileParams) // removed repeater because hapi always returns 'data' (hapi responseHelper._generateResponse)... rather than whatever is in repeater field, so its useless
+      const response = this.extractData(data, fileName, fileParams)
 
       delete this.params.files[fileName] // Remove the markdown file from metalsmith as its not an actual page
       if (response?.response) {
@@ -114,7 +114,7 @@ const PageData = class PageData {
         fileParams.dataSource = fileParams // Needs to double up for functions
 
         const url = this._buildUrl(fileParams)
-        const paginatedData = await fetchWithPagination(url)
+        const paginatedData = await fetchWithPagination(url, fileParams?.dataSource?.repeater || 'data')
         if (paginatedData) {
           const response = this.extractData({ data: paginatedData }, currentFile.key, fileParams)
           this.params.files[currentFile.key][opt] = response.data
