@@ -93,7 +93,7 @@ const PageData = class PageData {
     throw new Error('No response found')
   }
 
-  async makeExtraAPICalls (data, fileParams, callBack) {
+  makeExtraAPICalls (data, fileParams, callBack) {
     // Now check for additional requests per page returned from API call
     // This can be prodlib data based on an SEO object
     if (!fileParams.dataSource.extras) return callBack()
