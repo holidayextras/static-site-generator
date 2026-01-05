@@ -70,7 +70,7 @@ const PageData = class PageData {
       : `http://${host}:${port}${query}`
 
     const opts = this.params.opts
-    if (opts && opts.token && opts.token.name && opts.token.value) {
+    if (opts?.token?.name && opts.token.value) {
       const delimiter = url.includes('?') ? '&' : '?'
       url += `${delimiter}${opts.token.name}=${opts.token.value}`
     }
