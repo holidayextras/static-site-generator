@@ -2,6 +2,10 @@ name: Test and deploy
 
 on: push
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   test_and_deploy:
     runs-on: ubuntu-latest
@@ -29,5 +33,4 @@ jobs:
       - name: Publish
         if: github.ref == 'refs/heads/master'
         run: |
-          npm config set '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
           npm publish
