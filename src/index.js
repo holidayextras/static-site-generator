@@ -7,6 +7,7 @@ import assets from 'metalsmith-assets-improved'
 import getPrismicContent from './getPrismicContent'
 import singleFileOnly from './singleFileOnly'
 import webpackPages from './webpackPages'
+import fetchWithPagination from './components/pagination.js'
 
 const MetalSmithLoader = (opts) => {
   let isStatic = true
@@ -68,3 +69,4 @@ const MetalSmithLoader = (opts) => {
 }
 
 export default MetalSmithLoader
+export { fetchWithPagination }

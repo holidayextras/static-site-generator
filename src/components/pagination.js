@@ -70,4 +70,4 @@ async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000)
   return allResults.length > 0 ? allResults : null
 }
 
-export { fetchWithPagination }
+export default fetchWithPagination

@@ -1,4 +1,4 @@
-import { fetchWithPagination } from './pagination.js'
+import fetchWithPagination from './pagination.js'
 import pageNameChanger from './pageNameChanger'
 import pageNameSanitiser from './pageNameSanitiser'
 
