@@ -127,7 +127,7 @@ const PageData = class PageData {
 
   // Remove anything in the markdown query that isn't this single page
   // When folderPrefix is set (e.g. /de), compare using normalized names so we match whether the
-  // query has "kaputte-email-links" or "de/kaputte-email-links" — page has no de/ in name but we need /de for CSS.
+  // query has "kaputte-email-links" or "de/kaputte-email-links" — page has no de/ in name but we need /de.
   singlePageReduce (query) {
     if (!query) return false
     const selector = '&filter[pageName]='

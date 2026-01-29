@@ -48,7 +48,7 @@ const getHXSEOContent = (coreParams) => {
       if (process.env.singlePage) {
         // Search for the page both with and without folder prefix so we find it either way.
         // Example: folderPrefix=/de, singlePage=kaputte-email-links → filter by both
-        // "kaputte-email-links" and "de/kaputte-email-links" (page has no de/ in name but we need /de for CSS).
+        // "kaputte-email-links" and "de/kaputte-email-links" (page has no de/ in name but we need /de).
         const folderPrefix = opts.folderPrefix
         const bare = singlePageNameForApi(process.env.singlePage, folderPrefix)
         const prefixed = folderPrefix ? (folderPrefix.replace(/^\//, '') + '/' + bare) : bare

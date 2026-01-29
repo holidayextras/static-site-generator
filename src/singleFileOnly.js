@@ -4,7 +4,7 @@ const singleFileOnly = (opts) => {
     if (process.env.singlePage) {
       // Match the single page by name; when folderPrefix is set, accept both with and without prefix.
       // Example: folderPrefix=/de, singlePage=kaputte-email-links → keep either kaputte-email-links.html
-      // or de/kaputte-email-links.html (page has no de/ in filename but we need /de for CSS).
+      // or de/kaputte-email-links.html (page has no de/ in filename but we need /de).
       const singlePageName = process.env.singlePage.replace(/\.html$/, '')
       const folderPrefix = opts.webpackOptions?.folderPrefix
         ? opts.webpackOptions.folderPrefix.replace(/^\//, '') + '/'
