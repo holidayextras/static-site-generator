@@ -126,15 +126,22 @@ const PageData = class PageData {
   }
 
   // Remove anything in the markdown query that isn't this single page
+  // When folderPrefix is set (e.g. /de), compare using normalized names so we match whether the
+  // query has "kaputte-email-links" or "de/kaputte-email-links" — page has no de/ in name but we need /de.
   singlePageReduce (query) {
     if (!query) return false
     const selector = '&filter[pageName]='
     if (query.indexOf(selector) < 0) return query
+    const folderPrefix = this.params.opts?.folderPrefix ?? this.params.opts?.webpackOptions?.folderPrefix
+    const prefix = folderPrefix ? folderPrefix.replace(/^\//, '') + '/' : ''
+    const stripPrefix = (name) => (prefix && name && name.startsWith(prefix) ? name.slice(prefix.length) : name)
+    const wantName = stripPrefix(process.env.singlePage)
     const pageList = query.split(selector)
     query = query.split(selector).slice(0, 1)
     let newQuery = ''
     pageList.filter(page => {
-      return page.split('&')[0] === process.env.singlePage
+      const pageName = page.split('&')[0]
+      return stripPrefix(pageName) === wantName
     }).forEach(page => {
       newQuery += selector + page
     })
