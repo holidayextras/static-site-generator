@@ -68,16 +68,7 @@ const webpackPages = (globalOptions) => {
       delete props.stats
       delete props.mode
       const template = path.join(metalsmith._directory, globalOptions.directory, props[props.tpl])
-      let destFilename = file.replace(path.extname(file), '') + '.js'
-      // When folderPrefix is set (e.g. /de), prepend it to the webpack entry path so JS/CSS emit under /de.
-      // Example: folderPrefix=/de, file=kaputte-email-links.html → destFilename=de/kaputte-email-links.js
-      // so we get /de for CSS even when the page filename has no de/ (we need /de for overall CSS).
-      const folderPrefix = globalOptions.options?.folderPrefix
-      if (folderPrefix) {
-        const prefix = folderPrefix.replace(/^\//, '') + '/'
-        if (!destFilename.startsWith(prefix)) destFilename = prefix + destFilename
-      }
-      globalOptions.destFilename = destFilename
+      globalOptions.destFilename = file.replace(path.extname(file), '') + '.js'
       return generateOutput(template, props, globalOptions)
     }
 

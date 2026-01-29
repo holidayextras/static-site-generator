@@ -132,7 +132,7 @@ const PageData = class PageData {
     if (!query) return false
     const selector = '&filter[pageName]='
     if (query.indexOf(selector) < 0) return query
-    const folderPrefix = this.params.opts?.webpackOptions?.folderPrefix
+    const folderPrefix = this.params.opts?.folderPrefix ?? this.params.opts?.webpackOptions?.folderPrefix
     const prefix = folderPrefix ? folderPrefix.replace(/^\//, '') + '/' : ''
     const stripPrefix = (name) => (prefix && name && name.startsWith(prefix) ? name.slice(prefix.length) : name)
     const wantName = stripPrefix(process.env.singlePage)

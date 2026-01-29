@@ -15,6 +15,7 @@ function singlePageNameForApi (singlePage, folderPrefix) {
   return singlePage.startsWith(normalized) ? singlePage.slice(normalized.length) : singlePage
 }
 
+// coreParams: opts.dataSource.url with optional folderPrefix (from getDataSource: dataSource + webpackOptions.folderPrefix)
 const getHXSEOContent = (coreParams) => {
   const opts = Object.assign({ }, coreParams)
   return (files, metalsmith, done) => {
@@ -48,7 +49,7 @@ const getHXSEOContent = (coreParams) => {
         // Search for the page both with and without folder prefix so we find it either way.
         // Example: folderPrefix=/de, singlePage=kaputte-email-links → filter by both
         // "kaputte-email-links" and "de/kaputte-email-links" (page has no de/ in name but we need /de for CSS).
-        const folderPrefix = opts.webpackOptions?.folderPrefix
+        const folderPrefix = opts.folderPrefix
         const bare = singlePageNameForApi(process.env.singlePage, folderPrefix)
         const prefixed = folderPrefix ? (folderPrefix.replace(/^\//, '') + '/' + bare) : bare
         params.dataSource.query += `&filter[pageName]=${bare}`
