@@ -34,7 +34,9 @@ const getDataSource = (opts) => {
     })
   }
   if (opts.dataSource.type === 'hxseo') {
-    return hxseo(opts.dataSource.url)
+    // Pass full opts so getHXSEOContent can read webpackOptions.folderPrefix for single-page API filter logic
+    // (e.g. folderPrefix=/de, pageName=kaputte-email-links — page has no de/ but we need /de for CSS).
+    return hxseo(opts)
   }
   if (opts.dataSource.type === 'api') {
     return apiCaller(opts.dataSource)
