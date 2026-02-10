@@ -40,6 +40,10 @@ async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000)
         throw new Error(responseData.message)
       }
 
+      if (!responseData.meta?.page) {
+        throw new Error('No page data found in response')
+      }
+
       // Expect data in response and next page in 'links.next'
       const pageData = responseData[repeater]
 
