@@ -40,6 +40,10 @@ async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000)
         throw new Error(responseData.message)
       }
 
+      if (!responseData.meta?.page) {
+        throw new Error('No page data found in response')
+      }
+
       // Expect data in response and next page in 'links.next'
       const pageData = responseData[repeater]
 
@@ -50,12 +54,10 @@ async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000)
       }
 
       // Calculate pagination request numbers from offset, limit, and total
-      const pageMeta = responseData.meta?.page
-      if (pageMeta) { // check there is page data
-        const currentRequest = Math.floor(pageMeta.offset / pageMeta.limit) + 1
-        const totalRequests = Math.ceil(pageMeta.total / pageMeta.limit)
-        console.log(`[Pagination] Fetched ${(currentRequest / totalRequests * 100).toFixed(0)}% from ${currentUrl}`)
-      }
+      const pageMeta = responseData.meta.page
+      const currentRequest = Math.floor(pageMeta.offset / pageMeta.limit) + 1
+      const totalRequests = Math.ceil(pageMeta.total / pageMeta.limit)
+      console.log(`[Pagination] Fetched ${(currentRequest / totalRequests * 100).toFixed(0)}% from ${currentUrl}`)
 
       // Get the next page URL
       currentUrl = responseData.links?.next
