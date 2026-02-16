@@ -1,6 +1,6 @@
 {
   "name": "@holidayextras/static-site-generator",
-  "version": "9.6.1",
+  "version": "9.6.2",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",

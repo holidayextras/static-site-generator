@@ -44,6 +44,10 @@ async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000)
       const pageData = responseData[repeater]
 
       if (Array.isArray(pageData)) {
+        if (pageData.length === 0) {
+          throw new Error('No data found in response')
+        }
+
         for (const item of pageData) {
           allResults.push(item)
         }
