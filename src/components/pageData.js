@@ -90,6 +90,8 @@ const PageData = class PageData {
         return response.response
       }
     }
+    // Remove this md file so the pipeline does not see an orphan (avoids "No outputFiles for webpack" when another file succeeded)
+    delete this.params.files[fileName]
     throw new Error('No response found')
   }
 
@@ -150,6 +152,8 @@ const PageData = class PageData {
 
   // Loop over all the markdown files and lookup the data for the API request
   init () {
+    // When singlePage is set, same reduced query can come from multiple md files; only run the API once per query
+    const querySeen = {}
     const fetchedPageData = Object.keys(this.params.files).map(fileName => {
       return new Promise((resolve, reject) => {
         let fileParams = this.params.files[fileName]
@@ -160,6 +164,12 @@ const PageData = class PageData {
           delete this.params.files[fileName]
           return resolve()
         }
+        const queryKey = fileParams.dataSource.query
+        if (process.env.singlePage && querySeen[queryKey]) {
+          delete this.params.files[fileName]
+          return resolve()
+        }
+        if (process.env.singlePage) querySeen[queryKey] = true
         return this.callAPI(fileName, fileParams).then(data => {
           this.makeExtraAPICalls(data, fileParams, resolve)
         }).catch(reject)
