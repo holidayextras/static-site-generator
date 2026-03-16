@@ -5,6 +5,7 @@ on: push
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 jobs:
   test_and_deploy:
