@@ -1,5 +1,8 @@
 # static-site-generator Changelog
 
+## v9.7.0
+Add `publishConfig.registry` for GitHub Packages (@holidayextras). Bump minor for publish.
+
 ## v9.6.5
 Update all packages to the latest available
 
