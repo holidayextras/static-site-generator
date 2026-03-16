@@ -51,7 +51,8 @@
     "webpack-cli": "^6.0.1"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/@holidayextras"
+    "registry": "https://npm.pkg.github.com/@holidayextras",
+    "access": "restricted"
   },
   "owner": "audience"
 }
