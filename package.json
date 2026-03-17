@@ -15,8 +15,8 @@
   "scripts": {
     "build": "npm run trans",
     "trans": "babel src/ -d lib/",
-    "lint": "standard src/**/* src/* --fix",
-    "test": "npm run lint"
+    "lint": "npm run lint",
+    "test": "mocha test/simulate-request.test.js --timeout 30000"
   },
   "standard": {
     "ignore": [
@@ -36,6 +36,8 @@
     "underscore": "^1.13.8"
   },
   "devDependencies": {
+    "babel-loader": "^9.2.0",
+    "mocha": "^11.0.0",
     "@babel/cli": "^7.28.6",
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.0",
