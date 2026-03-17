@@ -3,7 +3,6 @@ import webpack from 'webpack'
 import fs from 'fs'
 import _ from 'underscore'
 import rm from 'rimraf'
-import mkdirp from 'mkdirp'
 
 let outputFiles = { }
 
@@ -50,7 +49,7 @@ const webpackPages = (globalOptions) => {
       outputFiles[destFilename.replace('.js', '')] = filename
 
       return new Promise((resolve, reject) => {
-        mkdirp(path.dirname(filename), error => {
+        fs.mkdir(path.dirname(filename), { recursive: true }, (error) => {
           if (error) return reject(error)
           return fs.writeFile(filename, output, (err) => {
             if (err) return reject(err)
