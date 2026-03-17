@@ -82,6 +82,8 @@ const PageData = class PageData {
     const url = this._buildUrl(fileParams)
     const data = await fetchWithPagination(url, fileParams?.dataSource?.repeater || 'data')
 
+    console.log('[pageData] API result for', fileName, ':', data === null ? 'null' : data === undefined ? 'undefined' : Array.isArray(data) ? 'array length ' + data.length : typeof data, Array.isArray(data) && data.length > 0 ? '(first item keys: ' + Object.keys(data[0]).join(', ') + ')' : '')
+
     if (data) {
       const response = this.extractData(data, fileName, fileParams)
 
@@ -90,7 +92,7 @@ const PageData = class PageData {
         return response.response
       }
     }
-    // Remove this md file so the pipeline does not see an orphan (avoids "No outputFiles for webpack" when another file succeeded)
+    console.log('[pageData] Deleting md file (no response / empty):', fileName)
     delete this.params.files[fileName]
     throw new Error('No response found')
   }
@@ -158,26 +160,40 @@ const PageData = class PageData {
       return new Promise((resolve, reject) => {
         let fileParams = this.params.files[fileName]
         if (this.params.opts.initSetup) fileParams = this.params.opts.initSetup(fileParams)
-        if (!fileParams.dataSource) return reject(new Error('SSG Error: no dataSource'))
+        if (!fileParams.dataSource) {
+          console.log('[pageData] Deleting md file (no dataSource):', fileName)
+          delete this.params.files[fileName]
+          return reject(new Error('SSG Error: no dataSource'))
+        }
         if (process.env.singlePage) fileParams.dataSource.query = this.singlePageReduce(fileParams.dataSource.query)
         if (!fileParams.dataSource.query) {
+          console.log('[pageData] Deleting md file (query empty after singlePage reduce):', fileName)
           delete this.params.files[fileName]
           return resolve()
         }
         const queryKey = fileParams.dataSource.query
         if (process.env.singlePage && querySeen[queryKey]) {
+          console.log('[pageData] Deleting md file (duplicate query, skipping API call):', fileName)
           delete this.params.files[fileName]
           return resolve()
         }
         if (process.env.singlePage) querySeen[queryKey] = true
         return this.callAPI(fileName, fileParams).then(data => {
           this.makeExtraAPICalls(data, fileParams, resolve)
-        }).catch(reject)
+        }).catch(err => {
+          console.log('[pageData] Deleting md file (API error):', fileName)
+          delete this.params.files[fileName]
+          reject(err)
+        })
       })
     })
-    return Promise.all(fetchedPageData).then(() => {
-      return this.returnFiles()
-    }).catch(() => {
+    // Use allSettled so we wait for every file to finish (resolve or reject) before returning.
+    // Promise.all would reject on first failure and return early, leaving other in-flight requests' mutations lost.
+    return Promise.allSettled(fetchedPageData).then((results) => {
+      const rejected = results.filter(r => r.status === 'rejected')
+      if (rejected.length > 0) {
+        console.error('[pageData] Some files failed:', rejected.map(r => r.reason?.message || r.reason))
+      }
       return this.returnFiles()
     })
   }

@@ -1,5 +1,8 @@
 # static-site-generator Changelog
 
+## v9.6.7
+PageData: use Promise.allSettled so all files are processed before returning (avoids returning early on first failure and losing successful results). Delete md file when no dataSource or on API error. Add [pageData] logging for API result and each md-file removal reason.
+
 ## v9.6.6
 Add `publishConfig.registry` for GitHub Packages (@holidayextras).
 
