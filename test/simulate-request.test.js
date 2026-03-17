@@ -1,9 +1,9 @@
 'use strict'
 
 const path = require('path')
-const SSG = require('../lib/index.js').default
-const singleFileOnly = require('../lib/singleFileOnly.js').default
-const webpackPages = require('../lib/webpackPages.js').default
+const SSG = require('../src/index.js').default
+const singleFileOnly = require('../src/singleFileOnly.js').default
+const webpackPages = require('../src/webpackPages.js').default
 
 const FIXTURE_DIR = path.join(__dirname, 'fixtures', 'landing-parking')
 const TMP_DIR = path.join(__dirname, 'tmp')
@@ -62,7 +62,7 @@ describe('simulate-request', () => {
   })
 
   describe('SSG full run', () => {
-    it.skip('invokes callback with no error and a non-empty pages array', (done) => {
+    it('invokes callback with no error and a non-empty pages array', (done) => {
       const opts = baseOpts({
         callback: (err, pages) => {
           try {
@@ -81,7 +81,7 @@ describe('simulate-request', () => {
   })
 
   describe('SSG single-page run', () => {
-    it.skip('builds only the matching page', (done) => {
+    it('builds only the matching page', (done) => {
       process.env.singlePage = 'de/page-a'
       const opts = baseOpts({
         dataSource: injectTwoPages,

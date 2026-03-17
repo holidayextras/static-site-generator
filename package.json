@@ -1,6 +1,6 @@
 {
   "name": "@holidayextras/static-site-generator",
-  "version": "9.6.8",
+  "version": "9.6.9",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "build": "npm run trans",
     "trans": "babel src/ -d lib/",
     "lint": "npm run lint",
-    "test": "mocha test/simulate-request.test.js --timeout 30000"
+    "test": "mocha --require @babel/register test/simulate-request.test.js --timeout 30000"
   },
   "standard": {
     "ignore": [
@@ -39,13 +39,14 @@
     "babel-loader": "^9.2.0",
     "mocha": "^11.0.0",
     "@babel/cli": "^7.28.6",
+    "@babel/register": "^7.28.6",
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.0",
     "@babel/preset-react": "^7.28.5",
     "debug": "^4.4.3",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-redux": "^9.2.0",
+    "react": "^16.6.0",
+    "react-dom": "^16.6.0",
+    "react-redux": "^7.0.0",
     "redux": "^5.0.1",
     "standard": "^17.1.2",
     "webpack": "^5.105.4",

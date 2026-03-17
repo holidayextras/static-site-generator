@@ -4,3 +4,8 @@ lib/
 npm-debug.log
 .eslintrc
 .eslintcache
+
+# Test tmp output and fixture build artifacts
+test/tmp/
+test/fixtures/**/_site/
+test/fixtures/**/Users/
