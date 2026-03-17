@@ -2,7 +2,7 @@ import path from 'path'
 import webpack from 'webpack'
 import fs from 'fs'
 import _ from 'underscore'
-import rm from 'rimraf'
+import { rimraf } from 'rimraf'
 
 let outputFiles = { }
 
@@ -74,7 +74,7 @@ const webpackPages = (globalOptions) => {
     const finishAll = () => {
       if (typeof globalOptions.webpack === 'function') globalOptions.webpack = globalOptions.webpack(globalOptions)
       if (!outputFiles || Object.keys(outputFiles).length < 1) {
-        rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
+        rimraf(path.join(metalsmith._directory, '_tempOutput')).catch(() => {})
         const webpackError = 'No outputFiles for webpack'
         console.log(webpackError)
         if (globalOptions.callback) return globalOptions.callback(new Error(webpackError))
@@ -94,8 +94,13 @@ const webpackPages = (globalOptions) => {
           console.log(errors)
           globalOptions.callback(errors[0])
         }
-        rm(path.join(metalsmith._directory, '_tempOutput'), () => { })
-        if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
+        rimraf(path.join(metalsmith._directory, '_tempOutput'))
+          .then(() => {
+            if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
+          })
+          .catch(() => {
+            if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
+          })
       })
     }
 

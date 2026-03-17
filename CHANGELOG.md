@@ -1,5 +1,8 @@
 # static-site-generator Changelog
 
+## v9.6.9
+Tests run against source (`src/`) via `@babel/register` so CI does not need a prior build of `lib/`. Full SSG and single-page pipeline tests added and enabled. webpackPages uses named import `rimraf` (compatible with rimraf 6.x). React and react-dom pinned to ^16.6.0 (react-redux to ^7) to match metalsmith-react-tpl so the full pipeline tests pass.
+
 ## v9.6.8
 Replace `mkdirp` with Node built-in `fs.mkdir(..., { recursive: true })` in webpackPages to fix "mkdirp.default is not a function" when consumed (mkdirp 3.x has no default export). Remove mkdirp dependency.
 
