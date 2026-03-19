@@ -1,258 +1,189 @@
 'use strict'
 
-const path = require('path')
-const SSG = require('../src/index.js').default
-const singleFileOnly = require('../src/singleFileOnly.js').default
-const webpackPages = require('../src/webpackPages.js').default
+const assert = require('assert')
+const getHXSEOContent = require('../src/getHXSEOContent.js').default
+const apiCaller = require('../src/apiCaller.js').default
 
-const FIXTURE_DIR = path.join(__dirname, 'fixtures', 'landing-parking')
-const TMP_DIR = path.join(__dirname, 'tmp')
+const TOKEN = '53000000-0000-0000-0000-000000000053'
+const HAPI = { host: 'hapi.holidayextras.co.uk', port: '443', token: TOKEN }
 
-function injectOnePage (files, metalsmith, done) {
-  Object.keys(files).forEach(k => delete files[k])
-  const key = 'de/test-page.html'
-  files[key] = {
-    template: 'content-template.jsx',
-    baseFile: 'layout.jsx',
-    pagename: key,
-    pageName: key,
-    pageData: {},
-    contents: Buffer.from('<h1>Test</h1>')
-  }
-  done()
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+// Build the minimal files object a plugin expects (mirrors what metalsmith
+// reads from an md file — the hxseo frontmatter is what the plugins care about)
+function md (key, query) {
+  return { [key]: { hxseo: { query }, contents: Buffer.from('') } }
 }
 
-function injectTwoPages (files, metalsmith, done) {
-  Object.keys(files).forEach(k => delete files[k])
-  const keys = ['de/page-a.html', 'de/page-b.html']
-  keys.forEach(key => {
-    files[key] = {
-      template: 'content-template.jsx',
-      baseFile: 'layout.jsx',
-      pagename: key,
-      pageName: key,
-      pageData: {},
-      contents: Buffer.from('<h1>Test</h1>')
-    }
+function run (plugin, files) {
+  return new Promise((resolve, reject) => {
+    plugin(files, {}, err => err ? reject(err) : resolve(files))
   })
-  done()
 }
 
-function baseOpts (overrides = {}) {
-  const dest = path.join(TMP_DIR, `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
-  return Object.assign({
-    src: FIXTURE_DIR,
-    clean: true,
-    config: { group: 'landing-parking', domainSettings: {} },
-    dataSource: injectOnePage,
-    layoutDir: 'baseTemplates',
-    templateDir: 'contentTemplates',
-    destination: dest,
-    assets: 'public',
-    webpack: 'webpack.config.js',
-    webpackOptions: { group: 'landing-parking', folderPrefix: '/de' },
-    callback: () => {}
-  }, overrides)
+// Mirrors ssg-hx-eu config/locations.js and config/partners.js initSetup.
+// domainSettings.language === 'en' per ssg-hx-eu/src/config/generatedConfig.js
+function euInitSetup (params) {
+  params.dataSource = {
+    host: HAPI.host,
+    port: HAPI.port,
+    query: `${params.hxseo.query}&pageLike=en/%`,
+    repeater: 'data',
+    pageDataField: 'attributes',
+    pageNameField: 'pageName'
+  }
+  return params
 }
+
+// _buildUrl reads opts.token (this.params.opts.token = the apiCaller opts object),
+// so token must live at the top level of the opts passed to apiCaller — not inside dataSource
+const EU_OPTS = { initSetup: euInitSetup, token: { name: 'token', value: TOKEN } }
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('simulate-request', () => {
   afterEach(() => {
     delete process.env.singlePage
-    delete process.env.srcFile
   })
 
-  describe('SSG full run', () => {
-    it('invokes callback with no error and a non-empty pages array', (done) => {
-      const opts = baseOpts({
-        callback: (err, pages) => {
-          try {
-            if (err) return done(err)
-            if (!Array.isArray(pages) || pages.length < 1) {
-              return done(new Error('Expected non-empty pages array, got: ' + JSON.stringify(pages)))
-            }
-            done()
-          } catch (e) {
-            done(e)
-          }
-        }
-      })
-      SSG(opts)
+  // ── ssg-hx-de: landing-hotels ─────────────────────────────────────────────
+  // type: hxseo — getHXSEOContent reads params.hxseo and calls HAPI
+  // location-airport-hotels.md: pageLike=flughafenhotel-% with noRedirect+ssg guards
+  describe('ssg-hx-de: landing-hotels', function () {
+    this.timeout(30000)
+    let firstPage
+
+    it('full group: returns flughafenhotel- pages', async () => {
+      const files = md('location-airport-hotels.md',
+        '/jsonapi/seoPages/?filter[siteCode]=DE-HX&noRedirect=true&filter[ssg]=1' +
+        '&filter[pageName]=flughafenhotel-duesseldorf' +
+        '&filter[pageName]=flughafenhotel-amsterdam' +
+        '&filter[pageName]=flughafenhotel-frankfurt'
+      )
+      await run(getHXSEOContent(HAPI), files)
+      const keys = Object.keys(files)
+      assert.ok(keys.length >= 1, `Expected pages, got ${JSON.stringify(keys)}`)
+      assert.ok(keys.every(k => k.includes('flughafenhotel')), `Unexpected page: ${JSON.stringify(keys)}`)
+      firstPage = keys[0].replace('.html', '')
     })
-  })
 
-  describe('SSG single-page run', () => {
-    it('builds only the matching page', (done) => {
-      process.env.singlePage = 'de/page-a'
-      const opts = baseOpts({
-        dataSource: injectTwoPages,
-        callback: (err, pages) => {
-          try {
-            if (err) return done(err)
-            if (!Array.isArray(pages)) return done(new Error('Expected pages array'))
-            const hasPageA = pages.some(p => p === 'de/page-a' || p === 'de/page-a.html')
-            const onlyOne = pages.length === 1
-            if (!hasPageA || !onlyOne) {
-              return done(new Error('Expected exactly one page (de/page-a), got: ' + JSON.stringify(pages)))
-            }
-            done()
-          } catch (e) {
-            done(e)
-          }
-        }
-      })
-      SSG(opts)
+    it('singlePage: returns only the requested page', async function () {
+      if (!firstPage) return this.skip()
+      process.env.singlePage = firstPage
+      const files = md('location-airport-hotels.md',
+        '/jsonapi/seoPages/?filter[siteCode]=DE-HX&noRedirect=true&filter[ssg]=1' +
+        '&filter[pageName]=flughafenhotel-duesseldorf' +
+        '&filter[pageName]=flughafenhotel-amsterdam' +
+        '&filter[pageName]=flughafenhotel-frankfurt'
+      )
+      await run(getHXSEOContent(HAPI), files)
+      const keys = Object.keys(files)
+      assert.strictEqual(keys.length, 1, `Expected 1 page, got ${JSON.stringify(keys)}`)
+      assert.ok(keys[0].includes(firstPage), `Expected ${firstPage}, got ${keys[0]}`)
     })
   })
 
-  describe('singleFileOnly', () => {
-    it('keeps only the matching file when singlePage and folderPrefix are set', (done) => {
-      process.env.singlePage = 'de/rom-flughafen-parken-test'
-      const opts = {
-        webpackOptions: { folderPrefix: '/de' }
-      }
-      const files = {
-        'de/rom-flughafen-parken-test.html': { contents: Buffer.from('') },
-        'de/other-page.html': { contents: Buffer.from('') },
-        'another.html': { contents: Buffer.from('') }
-      }
-      const metalsmith = { _directory: FIXTURE_DIR }
-      const plugin = singleFileOnly(opts)
-      plugin(files, metalsmith, () => {
-        try {
-          const keys = Object.keys(files)
-          if (keys.length !== 1 || !keys[0].includes('rom-flughafen-parken-test')) {
-            return done(new Error('Expected only de/rom-flughafen-parken-test.html, got: ' + JSON.stringify(keys)))
-          }
-          done()
-        } catch (e) {
-          done(e)
-        }
-      })
+  // ── ssg-hx-eu: locations ──────────────────────────────────────────────────
+  // type: api — apiCaller uses a custom initSetup that appends pageLike=en/%
+  // The query uses filter[menuName]=locations (not individual pageNames)
+  describe('ssg-hx-eu: locations', function () {
+    this.timeout(30000)
+    let firstPage
+
+    it('full group: returns en/ location pages', async () => {
+      const files = md('locations.md',
+        '/jsonapi/seoPages/?filter[siteCode]=HEXTRAS&filter[menuName]=locations&page[limit]=5'
+      )
+      await run(apiCaller(EU_OPTS), files)
+      const keys = Object.keys(files)
+      assert.ok(keys.length >= 1, `Expected pages, got ${JSON.stringify(keys)}`)
+      assert.ok(keys.every(k => k.startsWith('en/')), `Expected en/ prefix on all, got ${JSON.stringify(keys)}`)
+      firstPage = keys[0].replace('.html', '')
     })
 
-    it('keeps only matching file without folder prefix when singlePage has no prefix', (done) => {
-      process.env.singlePage = 'rom-flughafen-parken-test'
-      const opts = { webpackOptions: { folderPrefix: '/de' } }
-      const files = {
-        'rom-flughafen-parken-test.html': { contents: Buffer.from('') },
-        'de/rom-flughafen-parken-test.html': { contents: Buffer.from('') },
-        'other.html': { contents: Buffer.from('') }
-      }
-      const metalsmith = {}
-      const plugin = singleFileOnly(opts)
-      plugin(files, metalsmith, () => {
-        try {
-          const keys = Object.keys(files)
-          if (keys.length !== 2) {
-            return done(new Error('Expected both rom-flughafen-parken-test and de/rom-flughafen-parken-test (either matches), got: ' + JSON.stringify(keys)))
-          }
-          const hasMatch = keys.some(k => k.includes('rom-flughafen-parken-test'))
-          if (!hasMatch) return done(new Error('Expected at least one matching file'))
-          done()
-        } catch (e) {
-          done(e)
-        }
-      })
-    })
-
-    it('does nothing when singlePage is not set', (done) => {
-      const opts = { webpackOptions: { folderPrefix: '/de' } }
-      const files = {
-        'de/a.html': {},
-        'de/b.html': {}
-      }
-      const metalsmith = {}
-      const plugin = singleFileOnly(opts)
-      plugin(files, metalsmith, () => {
-        try {
-          if (Object.keys(files).length !== 2) {
-            return done(new Error('Expected both files when singlePage not set, got: ' + Object.keys(files).length))
-          }
-          done()
-        } catch (e) {
-          done(e)
-        }
-      })
+    it('singlePage: returns only the requested page', async function () {
+      if (!firstPage) return this.skip()
+      process.env.singlePage = firstPage
+      const files = md('locations.md',
+        '/jsonapi/seoPages/?filter[siteCode]=HEXTRAS&filter[menuName]=locations&page[limit]=5'
+      )
+      // apiCaller must be created AFTER singlePage is set — it checks the env var at factory time
+      await run(apiCaller(EU_OPTS), files)
+      const keys = Object.keys(files)
+      assert.strictEqual(keys.length, 1, `Expected 1 page, got ${JSON.stringify(keys)}`)
+      assert.ok(keys[0].includes(firstPage.split('/').pop()), `Expected ${firstPage}, got ${keys[0]}`)
     })
   })
 
-  describe('webpackPages', () => {
-    it('success: files in → callback(null, page names) out', (done) => {
-      const fixtureWebpack = require(path.join(FIXTURE_DIR, 'webpack.config.js'))
-      const metalsmith = { _directory: FIXTURE_DIR }
-      const files = {
-        'de/one.html': {
-          template: 'content-template.jsx',
-          baseFile: 'layout.jsx',
-          pagename: 'de/one.html',
-          pageName: 'de/one.html',
-          pageData: {},
-          group: 'landing-parking'
-        }
-      }
-      const globalOptions = {
-        webpack: fixtureWebpack,
-        dest: '_site/js',
-        directory: 'contentTemplates',
-        callback: (err, pages) => {
-          try {
-            if (err) return done(err)
-            if (!Array.isArray(pages) || pages.length < 1) {
-              return done(new Error('Expected non-empty pages array, got: ' + JSON.stringify(pages)))
-            }
-            done()
-          } catch (e) {
-            done(e)
-          }
-        }
-      }
-      const plugin = webpackPages(globalOptions)
-      plugin(files, metalsmith, () => {})
+  // ── ssg-hx-eu: partners ───────────────────────────────────────────────────
+  // Different from locations: uses filter[menuName]=partner-ssg with no filter[pageName] in the base query.
+  // singlePage works because apiCaller appends &filter[pageName]=${singlePage} via its initSetup wrapper,
+  // and singlePageReduce in pageData keeps only that one entry.
+  describe('ssg-hx-eu: partners', function () {
+    this.timeout(30000)
+    let firstPage
+
+    it('full group: returns partner pages', async () => {
+      const files = md('partners.md',
+        '/jsonapi/seoPages/?filter[menuName]=partner-ssg'
+      )
+      await run(apiCaller(EU_OPTS), files)
+      const keys = Object.keys(files)
+      assert.ok(keys.length >= 1, `Expected partner pages, got ${JSON.stringify(keys)}`)
+      firstPage = keys[0].replace('.html', '')
     })
 
-    it('success: multiple files in → callback(null, all page names) out', (done) => {
-      const fixtureWebpack = require(path.join(FIXTURE_DIR, 'webpack.config.js'))
-      const metalsmith = { _directory: FIXTURE_DIR }
-      const files = {
-        'de/page-a.html': {
-          template: 'content-template.jsx',
-          baseFile: 'layout.jsx',
-          pagename: 'de/page-a.html',
-          pageName: 'de/page-a.html',
-          pageData: {},
-          group: 'landing-parking'
-        },
-        'de/page-b.html': {
-          template: 'content-template.jsx',
-          baseFile: 'layout.jsx',
-          pagename: 'de/page-b.html',
-          pageName: 'de/page-b.html',
-          pageData: {},
-          group: 'landing-parking'
-        }
-      }
-      const globalOptions = {
-        webpack: fixtureWebpack,
-        dest: '_site/js',
-        directory: 'contentTemplates',
-        callback: (err, pages) => {
-          try {
-            if (err) return done(err)
-            if (!Array.isArray(pages) || pages.length !== 2) {
-              return done(new Error('Expected 2 page names, got: ' + JSON.stringify(pages)))
-            }
-            const names = pages.sort()
-            if (names[0] !== 'de/page-a' || names[1] !== 'de/page-b') {
-              return done(new Error('Expected [\'de/page-a\', \'de/page-b\'], got: ' + JSON.stringify(names)))
-            }
-            done()
-          } catch (e) {
-            done(e)
-          }
-        }
-      }
-      const plugin = webpackPages(globalOptions)
-      plugin(files, metalsmith, () => {})
+    it('singlePage: returns only the requested partner page', async function () {
+      if (!firstPage) return this.skip()
+      process.env.singlePage = firstPage
+      const files = md('partners.md',
+        '/jsonapi/seoPages/?filter[menuName]=partner-ssg'
+      )
+      await run(apiCaller(EU_OPTS), files)
+      const keys = Object.keys(files)
+      assert.strictEqual(keys.length, 1, `Expected 1 page, got ${JSON.stringify(keys)}`)
+      assert.ok(keys[0].includes(firstPage.split('/').pop()), `Expected ${firstPage}, got ${keys[0]}`)
+    })
+  })
+
+  // ── ssg-hx-uk: landing-parking ────────────────────────────────────────────
+  // type: hxseo — uses explicit filter[pageName] list (no folderPrefix in UK config)
+  // Pages live at bare names (e.g. manchester-airport-parking.html) with no country prefix
+  describe('ssg-hx-uk: landing-parking', function () {
+    this.timeout(30000)
+    let firstPage
+
+    it('full group: returns airport parking pages', async () => {
+      const files = md('landing-parking.md',
+        '/jsonapi/seoPages/?filter[siteCode]=HXSEO-LIVE' +
+        '&filter[pageName]=manchester-airport-parking' +
+        '&filter[pageName]=stansted-airport-parking' +
+        '&filter[pageName]=heathrow-airport-parking' +
+        '&filter[pageName]=gatwick-airport-parking' +
+        '&filter[pageName]=birmingham-airport-parking'
+      )
+      await run(getHXSEOContent(HAPI), files)
+      const keys = Object.keys(files)
+      assert.ok(keys.length >= 1, `Expected pages, got ${JSON.stringify(keys)}`)
+      assert.ok(keys.every(k => k.includes('airport-parking')), `Unexpected page: ${JSON.stringify(keys)}`)
+      firstPage = keys[0].replace('.html', '')
+    })
+
+    it('singlePage: returns only the requested page', async function () {
+      if (!firstPage) return this.skip()
+      process.env.singlePage = firstPage
+      const files = md('landing-parking.md',
+        '/jsonapi/seoPages/?filter[siteCode]=HXSEO-LIVE' +
+        '&filter[pageName]=manchester-airport-parking' +
+        '&filter[pageName]=stansted-airport-parking' +
+        '&filter[pageName]=heathrow-airport-parking' +
+        '&filter[pageName]=gatwick-airport-parking' +
+        '&filter[pageName]=birmingham-airport-parking'
+      )
+      await run(getHXSEOContent(HAPI), files)
+      const keys = Object.keys(files)
+      assert.strictEqual(keys.length, 1, `Expected 1 page, got ${JSON.stringify(keys)}`)
+      assert.ok(keys[0].includes(firstPage), `Expected ${firstPage}, got ${keys[0]}`)
     })
   })
 })
