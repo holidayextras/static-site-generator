@@ -82,7 +82,22 @@ const PageData = class PageData {
     const url = this._buildUrl(fileParams)
     const data = await fetchWithPagination(url, fileParams?.dataSource?.repeater || 'data')
 
-    console.log('[pageData] API result for', fileName, ':', data === null ? 'null' : data === undefined ? 'undefined' : Array.isArray(data) ? 'array length ' + data.length : typeof data, Array.isArray(data) && data.length > 0 ? '(first item keys: ' + Object.keys(data[0]).join(', ') + ')' : '')
+    if (!Array.isArray(data) || data.length === 0) {
+      console.log(`[pageData] ${fileName}: no data`)
+    } else {
+      const { pageDataField, pageNameField = 'pageName' } = fileParams?.dataSource || {}
+      const MAX_SHOW = 20
+      const lines = data.slice(0, MAX_SHOW).map(item => {
+        const pd = pageDataField ? item[pageDataField] : item
+        const name = pd?.[pageNameField] || '?'
+        const ssg = pd?.ssg !== undefined ? `ssg:${pd.ssg}` : null
+        const redirect = pd?.redirect !== undefined ? (pd.redirect ? 'redirect:yes' : 'redirect:no') : null
+        const html = pd?.html !== undefined ? (pd.html ? 'html:yes' : 'html:no') : null
+        return [name, ssg, redirect, html].filter(Boolean).join('  ')
+      })
+      const more = data.length > MAX_SHOW ? `\n  ...and ${data.length - MAX_SHOW} more` : ''
+      console.log(`[pageData] ${fileName}: ${data.length} page${data.length !== 1 ? 's' : ''}\n  ${lines.join('\n  ')}${more}`)
+    }
 
     if (data) {
       const response = this.extractData(data, fileName, fileParams)
@@ -130,22 +145,15 @@ const PageData = class PageData {
   }
 
   // Remove anything in the markdown query that isn't this single page
-  // When folderPrefix is set (e.g. /de), compare using normalized names so we match whether the
-  // query has "kaputte-email-links" or "de/kaputte-email-links" — page has no de/ in name but we need /de.
   singlePageReduce (query) {
     if (!query) return false
     const selector = '&filter[pageName]='
     if (query.indexOf(selector) < 0) return query
-    const folderPrefix = this.params.opts?.folderPrefix ?? this.params.opts?.webpackOptions?.folderPrefix
-    const prefix = folderPrefix ? folderPrefix.replace(/^\//, '') + '/' : ''
-    const stripPrefix = (name) => (prefix && name && name.startsWith(prefix) ? name.slice(prefix.length) : name)
-    const wantName = stripPrefix(process.env.singlePage)
     const pageList = query.split(selector)
     query = query.split(selector).slice(0, 1)
     let newQuery = ''
     pageList.filter(page => {
-      const pageName = page.split('&')[0]
-      return stripPrefix(pageName) === wantName
+      return page.split('&')[0] === process.env.singlePage
     }).forEach(page => {
       newQuery += selector + page
     })
