@@ -16,7 +16,7 @@
     "build": "npm run trans",
     "trans": "babel src/ -d lib/",
     "lint": "npm run lint",
-    "test": "mocha --require @babel/register test/simulate-request.test.js --timeout 30000"
+    "test": "mocha --require @babel/register test/simulate-request.test.js test/writeRedirect.test.js --timeout 30000"
   },
   "standard": {
     "ignore": [
