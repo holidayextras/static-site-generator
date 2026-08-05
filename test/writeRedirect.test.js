@@ -22,8 +22,11 @@ describe('writeRedirect', () => {
     })
 
     const contents = fs.readFileSync(REDIRECT_FILE, 'utf8')
-    assert(contents.includes('some/page'))
-    assert(contents.includes('https://example.com/target'))
+    const expected = [
+      'aws s3 cp "s3://$BUCKET/some/page.html" "s3://$BUCKET/some/page.html" --website-redirect "https://example.com/target"',
+      'aws s3 cp "s3://$BUCKET/some/page" "s3://$BUCKET/some/page" --website-redirect "https://example.com/target"'
+    ]
+    assert.strictEqual(contents, `\n${expected[0]}\n${expected[1]}`)
   })
 
   it('does not write anything when redirect value is missing', () => {
