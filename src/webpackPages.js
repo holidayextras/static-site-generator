@@ -3,6 +3,7 @@ import webpack from 'webpack'
 import fs from 'fs'
 import _ from 'underscore'
 import { rimraf } from 'rimraf'
+import { assertNoCredentials, emittedFiles } from './assertNoCredentials'
 
 let outputFiles = { }
 
@@ -93,6 +94,12 @@ const webpackPages = (globalOptions) => {
           const errors = stats.compilation.errors
           console.log(errors)
           globalOptions.callback(errors[0])
+        }
+        const credentialError = assertNoCredentials(emittedFiles(stats.compilation), globalOptions.credentials)
+        if (credentialError) {
+          console.log(credentialError.message)
+          if (globalOptions.callback) return globalOptions.callback(credentialError)
+          throw credentialError
         }
         rimraf(path.join(metalsmith._directory, '_tempOutput'))
           .then(() => {
