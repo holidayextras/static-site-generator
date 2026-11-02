@@ -120,6 +120,13 @@ const initSetup = params => {
 export initSetup
 ```
 
+Build credentials remain available during data fetching. Before server rendering and
+browser hydration, the generator removes `token` and `accessToken` fields from
+`dataSource` and `dataSource.url`, including those parameters in their `query`
+strings. Other query parameters and page content are preserved. The generator also
+checks emitted JavaScript and source maps for the removed credential values and
+fails the build if they remain elsewhere in the output.
+
 *src/api1.md*
 ```
 ---
