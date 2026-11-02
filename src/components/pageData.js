@@ -1,4 +1,4 @@
-import fetchWithPagination from './pagination.js'
+import fetchWithPagination, { fetchExtraData } from './pagination.js'
 import pageNameChanger from './pageNameChanger'
 import pageNameSanitiser from './pageNameSanitiser'
 
@@ -133,10 +133,9 @@ const PageData = class PageData {
         fileParams.dataSource = fileParams // Needs to double up for functions
 
         const url = this._buildUrl(fileParams)
-        const paginatedData = await fetchWithPagination(url, fileParams?.dataSource?.repeater || 'data')
-        if (paginatedData) {
-          const response = this.extractData({ data: paginatedData }, currentFile.key, fileParams)
-          this.params.files[currentFile.key][opt] = response.data
+        const extraData = await fetchExtraData(url, fileParams?.dataSource?.repeater || 'data')
+        if (extraData) {
+          this.params.files[currentFile.key][opt] = extraData
         }
       })
       Promise.all(extraPageData).then(callBack).catch(callBack)

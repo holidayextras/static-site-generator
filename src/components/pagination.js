@@ -6,9 +6,10 @@
  * @param {string} hapiUrl - The API endpoint URL (can include query parameters)
  * @param {string} repeater - The repeater to fetch data from (default: 'data')
  * @param {number} timeout - Per-request timeout in ms (default: 10000)
- * @returns {Promise<Array|null>} - Flattened array of all paginated data, or null if no results found
+ * @param {boolean} allowNonPaginatedResponse - Preserve plain-object extra feeds
+ * @returns {Promise<Array|Object|null>} - Paginated results, an extra-feed object, or null
  */
-async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000) {
+async function fetchData (hapiUrl, repeater, timeout, allowNonPaginatedResponse = false) {
   const allResults = []
   let currentUrl = hapiUrl
 
@@ -38,6 +39,11 @@ async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000)
 
       if (responseData.message) {
         throw new Error(responseData.message)
+      }
+
+      // Extra feeds such as lastUpdated return an object without pagination metadata.
+      if (allowNonPaginatedResponse && allResults.length === 0 && !responseData.meta?.page) {
+        return responseData
       }
 
       // Expect data in response and next page in 'links.next'
@@ -74,4 +80,14 @@ async function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000)
   return allResults.length > 0 ? allResults : null
 }
 
+function fetchWithPagination (hapiUrl, repeater = 'data', timeout = 10000) {
+  return fetchData(hapiUrl, repeater, timeout)
+}
+
+async function fetchExtraData (url, repeater = 'data', timeout = 10000) {
+  const data = await fetchData(url, repeater, timeout, true)
+  return Array.isArray(data) ? { data } : data
+}
+
 export default fetchWithPagination
+export { fetchExtraData }
