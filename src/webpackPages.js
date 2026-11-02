@@ -5,8 +5,6 @@ import _ from 'underscore'
 import { rimraf } from 'rimraf'
 import { assertNoCredentials, emittedFiles } from './assertNoCredentials'
 
-let outputFiles = { }
-
 const webpackPages = (globalOptions) => {
   /* Return to metalsmith */
   return (files, metalsmith, done) => {
@@ -15,6 +13,14 @@ const webpackPages = (globalOptions) => {
 
     globalOptions.tempDir = path.join(metalsmith._directory, '_tempOutput')
     globalOptions.dest = path.join(metalsmith._directory, globalOptions.dest)
+    const outputFiles = { }
+
+    const complete = err => rimraf(globalOptions.tempDir)
+      .catch(() => {})
+      .then(() => {
+        if (globalOptions.callback) return globalOptions.callback(err, err ? undefined : Object.keys(outputFiles))
+        if (err) throw err
+      })
 
     const generateOutput = (template, props, options) => {
       const method = props.dataSource && props.dataSource.hydrate ? 'hydrate' : 'render'
@@ -75,43 +81,24 @@ const webpackPages = (globalOptions) => {
     const finishAll = () => {
       if (typeof globalOptions.webpack === 'function') globalOptions.webpack = globalOptions.webpack(globalOptions)
       if (!outputFiles || Object.keys(outputFiles).length < 1) {
-        rimraf(path.join(metalsmith._directory, '_tempOutput')).catch(() => {})
-        const webpackError = 'No outputFiles for webpack'
-        console.log(webpackError)
-        if (globalOptions.callback) return globalOptions.callback(new Error(webpackError))
+        throw new Error('No outputFiles for webpack')
       }
       globalOptions.webpack.entry = outputFiles
-      webpack(globalOptions.webpack, (err, stats) => {
-        if (err) {
-          console.log(err.stack || err)
-          if (err.details) {
-            console.log(err.details)
+      return new Promise((resolve, reject) => {
+        webpack(globalOptions.webpack, (err, stats) => {
+          if (err) return reject(err)
+          if (stats.hasErrors()) return reject(stats.compilation.errors[0])
+          try {
+            const credentialError = assertNoCredentials(emittedFiles(stats.compilation), globalOptions.credentials)
+            if (credentialError) return reject(credentialError)
+            resolve()
+          } catch (error) {
+            reject(error)
           }
-          if (globalOptions.callback) return globalOptions.callback(err)
-          throw err
-        }
-        if (stats.hasErrors()) {
-          const errors = stats.compilation.errors
-          console.log(errors)
-          globalOptions.callback(errors[0])
-        }
-        const credentialError = assertNoCredentials(emittedFiles(stats.compilation), globalOptions.credentials)
-        if (credentialError) {
-          console.log(credentialError.message)
-          if (globalOptions.callback) return globalOptions.callback(credentialError)
-          throw credentialError
-        }
-        rimraf(path.join(metalsmith._directory, '_tempOutput'))
-          .then(() => {
-            if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
-          })
-          .catch(() => {
-            if (globalOptions.callback) globalOptions.callback(null, Object.keys(outputFiles))
-          })
+        })
       })
     }
 
-    outputFiles = { }
     const promises = Object.keys(files).map(function (key) {
       const props = files[key]
       const file = key
@@ -122,10 +109,7 @@ const webpackPages = (globalOptions) => {
     return Promise
       .all(promises)
       .then(finishAll)
-      .catch(function (err) {
-        if (globalOptions.callback) globalOptions.callback(err)
-        console.error(err)
-      })
+      .then(() => complete(null), complete)
   }
 }
 

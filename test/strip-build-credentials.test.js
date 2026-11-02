@@ -81,6 +81,41 @@ describe('stripBuildCredentials', () => {
     assert.deepStrictEqual(files['page.html'], Object.assign({ dataSource: { host: 'hapi.example.test' } }, page))
   })
 
+  it('strips query-only credentials, including repeated and encoded parameters, without changing other parameters', async () => {
+    const query = '/pages?filter[name]=a%20b&%74oken=CANARY%2BQUERY&token=SECOND_CANARY&accessToken=ACCESS_CANARY&empty=&flag#section'
+    const dataSource = { query, url: { query: 'token=URL_CANARY&limit=2' } }
+    const credentials = new Map()
+    const files = { 'index.html': { dataSource } }
+
+    await run(stripBuildCredentials({}, credentials), files)
+
+    assert.strictEqual(files['index.html'].dataSource.query, '/pages?filter[name]=a%20b&empty=&flag#section')
+    assert.strictEqual(files['index.html'].dataSource.url.query, 'limit=2')
+    assert.strictEqual(dataSource.query, query)
+    assert.strictEqual(dataSource.url.query, 'token=URL_CANARY&limit=2')
+    for (const value of ['CANARY+QUERY', 'CANARY%2BQUERY', 'SECOND_CANARY', 'ACCESS_CANARY', 'URL_CANARY']) {
+      assert.ok(credentials.has(value), `Missing credential representation: ${value}`)
+    }
+  })
+
+  it('records option query credentials and handles empty or credential-only queries', async () => {
+    const opts = { dataSource: { query: '/pages?token=OPTIONS_CANARY' } }
+    const credentials = new Map()
+    const files = {
+      'a.html': { dataSource: { query: '/pages?token=#section' } },
+      'b.html': { dataSource: { query: 'accessToken=ONLY_CANARY' } },
+      'c.html': { dataSource: { query: '/pages?token&limit=1' } }
+    }
+
+    await run(stripBuildCredentials(opts, credentials), files)
+
+    assert.strictEqual(opts.dataSource.query, '/pages?token=OPTIONS_CANARY')
+    assert.strictEqual(credentials.get('OPTIONS_CANARY'), 'options.dataSource.query.token')
+    assert.strictEqual(files['a.html'].dataSource.query, '/pages#section')
+    assert.strictEqual(files['b.html'].dataSource.query, '')
+    assert.strictEqual(files['c.html'].dataSource.query, '/pages?limit=1')
+  })
+
   it('ignores files without a data source object', async () => {
     const files = { 'a.html': { title: 'A' }, 'b.html': { dataSource: 'external' } }
 
