@@ -7,6 +7,7 @@ import assets from 'metalsmith-assets-improved'
 import getPrismicContent from './getPrismicContent'
 import singleFileOnly from './singleFileOnly'
 import webpackPages from './webpackPages'
+import stripBuildCredentials from './stripBuildCredentials'
 import fetchWithPagination from './components/pagination.js'
 
 const MetalSmithLoader = (opts) => {
@@ -23,6 +24,8 @@ const MetalSmithLoader = (opts) => {
   }
 
   const dataSource = getDataSource(opts)
+  // Build credentials removed from page props, checked for again in the webpack output
+  const credentials = new Map()
 
   const metalSmith = new Metalsmith(opts.src)
     .clean(opts.clean)
@@ -34,7 +37,9 @@ const MetalSmithLoader = (opts) => {
     metalSmith.use(getPrismicContent(opts))
   }
 
+  // After all data fetching, before server rendering, so server and browser props match
   metalSmith
+    .use(stripBuildCredentials(opts, credentials))
     .use(markdown())
     .use(template({
       babel: true,
@@ -55,6 +60,7 @@ const MetalSmithLoader = (opts) => {
       noConflict: false,
       dest: opts.destination + '/js',
       webpack: require(path.join(opts.src, opts.webpack)),
+      credentials,
       callback: opts.callback
     }))
 

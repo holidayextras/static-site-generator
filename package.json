@@ -1,6 +1,6 @@
 {
   "name": "@holidayextras/static-site-generator",
-  "version": "9.7.0",
+  "version": "9.7.1",
   "description": "Holiday Extras Static Site Generator in metalsmith / react",
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "build": "npm run trans",
     "trans": "babel src/ -d lib/",
     "lint": "npm run lint",
-    "test": "mocha --require @babel/register test/simulate-request.test.js --timeout 30000"
+    "test": "mocha --require @babel/register \"test/**/*.test.js\" --timeout 30000"
   },
   "standard": {
     "ignore": [
